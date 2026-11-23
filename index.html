@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#1F1D1A">
+  <meta name="description" content="Consulta la situación legal de operaciones mineras, mira el mapa de colas con mercurio y denuncia con foto y ubicación.">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" type="image/png" href="icons/favicon-32.png">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="Control Minero">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <title>Registro y Control Minero · Prototipo</title>
+  <link rel="stylesheet" href="css/fonts.css">
+  <link rel="stylesheet" href="js/vendor/leaflet/leaflet.css">
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/components.css">
+  <link rel="stylesheet" href="css/public.css">
+  <link rel="stylesheet" href="css/acceso.css">
+</head>
+<body>
+  <a class="skip" href="#contenido">Saltar al contenido</a>
+  <div id="app" class="app"></div>
+  <noscript><p style="padding:24px">Esta aplicación necesita JavaScript.</p></noscript>
+
+  <!-- Librerías (incluidas en el repositorio: funciona sin conexión) -->
+  <script src="js/vendor/leaflet/leaflet.js"></script>
+  <script src="js/vendor/xlsx.mini.min.js"></script>
+
+  <!-- Configuración y núcleo (el orden importa) -->
+  <script src="js/config/config.js"></script>
+  <script src="js/core/util.js"></script>
+  <script src="js/core/scoring.js"></script>
+  <script src="js/core/importer.js"></script>
+  <script src="js/core/api.js"></script>
+  <script src="js/core/auth.js"></script>
+  <script src="js/data/seed.js"></script>
+  <script src="js/data/rios.js"></script>
+  <script src="js/data/hidro-zona.js"></script>
+  <script src="js/core/store.js"></script>
+  <script src="js/core/ui.js"></script>
+  <script src="js/core/charts.js"></script>
+  <script src="js/core/basemap.js"></script>
+  <script src="js/core/hidro.js"></script>
+  <script src="js/core/pwa.js"></script>
+  <script src="js/core/app.js"></script>
+
+  <!-- Módulos: cada archivo registra una sección. Para quitar una, borre su línea. -->
+  <script src="js/modules/detalle.js"></script>
+  <script src="js/modules/inicio.js"></script>
+  <script src="js/modules/resumen.js"></script>
+  <script src="js/modules/mapa.js"></script>
+  <script src="js/modules/operadores.js"></script>
+  <script src="js/modules/pasivos.js"></script>
+  <script src="js/modules/denuncias.js"></script>
+  <script src="js/modules/datos.js"></script>
+  <script src="js/modules/registro.js"></script>
+  <script src="js/modules/buzon.js"></script>
+  <script src="js/modules/configuracion.js"></script>
+  <script src="js/modules/ingresar.js"></script>
+</body>
+</html>
