@@ -45,7 +45,7 @@
          (puntos azules en el mapa público; los funcionarios ven además los rojos);
        - el público NUNCA recibe pasivos (colas/relaves) ni operadores "No legal".
        Si está vacío, la app funciona en MODO DEMOSTRACIÓN (sin confidencialidad real). */
-    backend: { url: '' },
+    backend: { url: 'https://script.google.com/macros/s/AKfycbwkdXlOtAmbglzz-4oLFf5xxk5YSrgPqjij1gIwx4U51sXp6dijalovNIwJGH-1n7cK/exec' },
 
     /* Detecciones revisadas (sección del municipio): zonas que una persona marcó como
        "Parece actividad minera" en el visor de imágenes satelitales. Son datos confidenciales:
