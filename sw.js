@@ -7,7 +7,7 @@
      municipio (los datos confidenciales nunca se guardan aquí).
    Al cambiar archivos de la app, suba la VERSION para renovar la copia.
    ========================================================================== */
-const VERSION = 'g4g-0.4.1';
+const VERSION = 'g4g-0.5.0';
 const ARCHIVOS = [
   './', 'index.html', 'manifest.webmanifest',
   'css/fonts.css', 'css/base.css', 'css/components.css', 'css/public.css', 'css/acceso.css', 'css/deteccion.css',

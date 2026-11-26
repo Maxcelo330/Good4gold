@@ -9,13 +9,13 @@ Aplicación de **verificación, control y reporte** para el desafío ORO-4.2 (Go
 | Sección | Para qué sirve |
 |---|---|
 | **Inicio** | Buscador con sugerencias ("¿esta operación está en regla?"), accesos a mapa y denuncia, y cifras del registro que llevan a la lista filtrada. |
-| **Mapa** | Toca cualquier punto: "¿Qué hay aquí?" muestra las operaciones a menos de 5 km y un botón **Denunciar en este punto**. Buscador que vuela a la operación, botón "Mi ubicación", filtros de un toque y vistas Mapa / Satélite / Relieve (el satélite sirve para ver diques de colas). |
+| **Mapa** | Puntos **verdes** (legal), **amarillos** (en proceso) y **azules** (denuncias de la ciudadanía, de todos los dispositivos). Toca cualquier punto: "¿Qué hay aquí?" muestra las operaciones a menos de 5 km y un botón **Denunciar en este punto**. Buscador que vuela a la operación, botón "Mi ubicación", filtros de un toque, vistas Mapa / Satélite / Relieve, estado de la conexión y botón **Actualizar**. |
 | **Consultar** | Tarjetas o tabla de operadores con filtros por situación legal. La ficha muestra **qué requisitos le faltan** y permite denunciar en su ubicación. |
 | **Denunciar** | Asistente en 3 pasos (qué viste → dónde → foto y envío) con código de seguimiento. Compara la ubicación con el registro y avisa si no hay operaciones registradas cerca. |
 
 **Panel técnico** (funcionarios): **Resumen** del registro, **Pasivos** (ranking de colas por riesgo × valor) y **Datos** (carga del Excel/CSV, conexión en línea y validación de calidad). **Detecciones revisadas**: zonas marcadas en imágenes satelitales (ver abajo).
 
-**Solo lectura:** la app nunca escribe en la base. Las denuncias se guardan en el dispositivo, separadas, y se exportan (GeoJSON / CSV / JSON con fotos) para que un funcionario las incorpore.
+**Denuncias:** con la base en línea (backend) van a la hoja **Denuncias** y todos los dispositivos las ven en el mapa (ver "Interconexión"). En modo demostración (sin backend) se guardan solo en el dispositivo y se exportan (GeoJSON / CSV / JSON con fotos) para que un funcionario las incorpore.
 
 ## Ríos, quebradas y canales
 En el mapa, grupo **Agua**: interruptores *Ríos principales* y *Quebradas y canales*, con leyenda. Además, **"¿Qué hay aquí?"** y el paso de ubicación de la denuncia indican el **curso de agua más cercano** y a qué distancia.
@@ -34,10 +34,34 @@ Límites que conviene conocer:
 
 ## Acceso por perfil, backend e instalación (v0.4.0)
 
-- **Público (sin cuenta):** Inicio, Mapa, Consultar, Denunciar y Configuración. **No ve los operadores "No legal" ni sus pasivos** (confidencialidad), ni la cifra de "No legales".
-- **Funcionario del municipio (Ingresar, arriba a la derecha):** ve toda la base y el menú **Municipio**: Resumen, Pasivos, Datos, **Detecciones revisadas**, **Registrar datos** (alta y edición de operadores y pasivos) y **Denuncias recibidas** (estado y nota de seguimiento). Las fichas muestran el botón Editar.
-- **Backend:** `backend/Codigo.gs` (Google Apps Script, gratis) junto a la hoja de Google. Guía: [backend/INSTRUCCIONES.md](backend/INSTRUCCIONES.md). Se conecta con `backend.url` en `js/config/config.js`.
-  Sin backend la app funciona en **modo demostración**: cuenta `municipio` / `demo2026`, lo confidencial se oculta solo en pantalla y los cambios quedan en el dispositivo.
+- **Público (sin cuenta):** Inicio, Mapa, Consultar, Denunciar y Configuración. **No ve los operadores "No legal", ni ningún pasivo (colas, relaves)**, ni la cifra de "No legales". No hay otra pantalla de clave que el botón **Ingresar**.
+- **Funcionario del municipio (Ingresar, arriba a la derecha):** usuario `Aurum80`, clave `Aurum80`. Ve toda la base y el menú **Municipio**: Resumen, Pasivos, Datos, **Detecciones revisadas**, **Registrar datos** (alta y edición de operadores y pasivos) y **Denuncias recibidas** (estado y nota de seguimiento). Las fichas muestran el botón Editar.
+- **Backend:** `backend/Codigo.gs` (Google Apps Script, gratis) junto a la hoja de Google. Guía: [backend/INSTRUCCIONES.md](backend/INSTRUCCIONES.md). Se conecta con `backend.url` en `js/config/config.js`. El libro de referencia de la hoja es `backend/plantilla-base-de-datos.xlsx` (se regenera con `backend/generar_plantilla.py`).
+  Sin backend la app funciona en **modo demostración** (indicador "Modo demostración · solo este dispositivo"): cuenta `Aurum80` / `Aurum80`, lo confidencial se oculta solo en pantalla y los cambios quedan en el dispositivo. Esa cuenta está escrita en `config.js` (público en GitHub) y no protege nada; con backend, la clave vive cifrada en la hoja `Usuarios`.
+
+### Qué ve cada perfil en el mapa
+| Marcador | Significa | Público | Funcionario |
+|---|---|:-:|:-:|
+| Círculo **verde** | Operador legal | Sí | Sí |
+| Triángulo **amarillo** | Operador en proceso | Sí | Sí |
+| Círculo azul con "!" **(azul)** | Denuncia recibida (de cualquier dispositivo) | Sí | Sí |
+| Cuadrado **rojo** | Operador "No legal" | No | Sí |
+| Círculo rojo con "!" **(rojo)** | Denuncia **para verificar**: en estado "En revisión", o a menos de 2 km de una operación "No legal" (`config.mapaDenuncias`) | No (la ve azul) | Sí |
+| Anillo gris | Operador sin verificar | No | Sí |
+| Hexágono **violeta** (oscuro = más prioridad) | Pasivo (colas, relaves, desmontes) | No | Sí |
+
+Los pasivos usan su propia familia (violeta) y forma (hexágono) para no confundirse con nada rojo; la escala por clasificación está en `config.pasivoColor` y `--pasivo-1..4` (css). Las denuncias "descartadas" no se dibujan. El público ve el estado resumido de una denuncia ("Recibida" o "Atendida").
+
+### Interconexión entre dispositivos (con backend)
+| Qué pasa en la app | Acción de Apps Script |
+|---|---|
+| Al abrir, la ciudadanía recibe el registro sin "No legal" y **sin pasivos** | `publico` |
+| Alguien denuncia (sin cuenta; foto opcional) | `denuncia` (valida largo y rango, campo trampa, límite por minuto y por dispositivo, y escribe en la hoja `Denuncias`) |
+| El mapa público dibuja los puntos azules | `denunciasMapa` (solo código, lat, lng, tipo, día y estado resumido: nunca foto, descripción ni contacto) |
+| Un funcionario ingresa y ve todo | `login`, `completo`, `denuncias` (lista completa), `foto` |
+| Un funcionario atiende una denuncia o edita datos | `estadoDenuncia`, `guardar` |
+
+El mapa se actualiza solo: al abrir, cada 60 segundos mientras la pestaña está visible, al volver la señal o la pestaña, y con el botón **Actualizar**. Una denuncia hecha sin señal queda "Sin enviar" (con su punto en el mapa de ese dispositivo) y se envía sola al volver la conexión. **Decisión de privacidad:** las coordenadas de las denuncias se publican exactas (es el lugar de la actividad que se vio) y sin ningún dato de la persona; si se prefiere más discreción, se pueden redondear en `listarDenunciasMapa_()` de `Codigo.gs`.
 - **Instalar en el celular:** Configuración → *Instalar aplicación* (Android/Chrome/Edge) o instrucciones para iPhone (Safari → Compartir → Agregar a inicio). Requiere la página publicada por https (GitHub Pages); abierta como archivo no se instala.
 - **Sin conexión:** `sw.js` guarda la app; abre sin señal con la última copia pública. Una denuncia hecha sin señal queda "Sin enviar" y se envía sola al volver la conexión. Al cambiar archivos, subir `VERSION` en `sw.js`.
 
@@ -48,7 +72,7 @@ Sección **Municipio → Detecciones revisadas**: muestra en un mapa (satélite 
 - **Confidencialidad (decisión D-002):** son datos sensibles. La sección pertenece al grupo `tecnico`: sin sesión de funcionario no aparece en el menú, no se construye y su dirección (`#/deteccion`) lleva a Ingresar. **El repositorio no incluye ningún dato real**; el service worker tampoco guarda archivos `.geojson` ni `zonas-revisadas*`. Al cerrar sesión se limpia la pantalla, pero el archivo cargado sigue guardado en ese dispositivo hasta pulsar **Quitar las zonas de este dispositivo** (en un equipo compartido, quítelas antes de salir).
 - **Cómo cargar los datos:**
   1. En el visor de imágenes se genera `zonas_confirmadas.geojson` (FeatureCollection de Polygon/MultiPolygon en WGS84, con `id` y propiedades como `area_ha`, `puntaje_modelo`, `poblado_cercano`, `dist_rio_m`, `fecha_revision`, `nota_revision`, `opinion_claude`).
-  2. Ingrese como funcionario (demostración: `municipio` / `demo2026`), abra **Detecciones revisadas** y pulse **Cargar archivo de zonas (GeoJSON)**. El archivo se valida: se ignoran las zonas sin geometría válida, sin `id` o con `id` repetido, y se muestra cuántas.
+  2. Ingrese como funcionario (demostración: `Aurum80` / `Aurum80`), abra **Detecciones revisadas** y pulse **Cargar archivo de zonas (GeoJSON)**. El archivo se valida: se ignoran las zonas sin geometría válida, sin `id` o con `id` repetido, y se muestra cuántas.
   3. Las zonas se guardan solo en este dispositivo (`localStorage`, clave `g4g_zonas_revisadas_v1`, cerca de 5 MB de límite; si no caben se avisa y se ven solo hasta recargar).
 - **Alternativas (opcionales):** `G4G.config.deteccion.url` en `js/config/config.js` (por defecto vacía): si tiene la dirección de un GeoJSON accesible desde el navegador (con CORS), la sección lo descarga al abrirse sin datos o con el botón "Actualizar desde la dirección configurada". También puede definirse `window.G4G_ZONAS_REVISADAS` (FeatureCollection) en un archivo `js/data/zonas-revisadas.js` enlazado en `index.html`; **ese archivo no se crea ni se sube** mientras los datos sean confidenciales.
 
@@ -73,6 +97,7 @@ js/core/        app.js (módulos, rutas y grupos de menú) · store.js (datos) �
                 basemap.js (mapas base con respaldo) · hidro.js (ríos y canales)
                 scoring.js (riesgo × valor) · ui.js · charts.js · util.js
 js/data/        seed.js (datos simulados) · rios.js (ríos principales) · hidro-zona.js (detalle norte de La Paz)
+backend/        Codigo.gs (Apps Script) · INSTRUCCIONES.md · plantilla-base-de-datos.xlsx · generar_plantilla.py
 js/modules/     una sección por archivo: inicio, mapa, operadores (Consultar), denuncias (Denunciar),
                 resumen, pasivos, datos, deteccion (Detecciones revisadas)
                 detalle.js  fichas laterales (no es una sección)
@@ -89,7 +114,7 @@ js/vendor/      Leaflet (mapa) y SheetJS (lector de Excel), incluidos para uso s
 ## Pendientes y límites conocidos
 - Pesos, umbrales, densidad, recuperación y precio del oro son **supuestos de demostración**: validar con especialistas (nota V-003 en el vault).
 - La lista de requisitos para regularizarse es un **ejemplo editable**; debe ajustarse a la normativa vigente.
-- Las denuncias se guardan en el navegador del dispositivo (límite del navegador, unas decenas de fotos reducidas). Para producción: base de datos/servidor.
+- En modo demostración las denuncias se guardan en el navegador del dispositivo (límite del navegador, unas decenas de fotos reducidas) y no las ven otros dispositivos. Con el backend de Google Sheets sí (límites gratuitos de Apps Script; para producción a escala, un servidor institucional).
 - Un usuario con conocimientos técnicos puede borrar los datos del navegador: no sustituye a un sistema con cuentas y respaldo.
-- Solo tema claro; sin instalación como app (PWA) todavía.
+- Solo tema claro.
 - Probado con Edge (escritorio y emulación móvil). Falta probar en celulares reales y con el Excel real.
