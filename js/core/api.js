@@ -37,6 +37,8 @@
     completo: (token) => llamar('completo', { token }),
     guardar: (token, tabla, registro) => llamar('guardar', { token, tabla, registro }),
     denuncia: (denuncia) => llamar('denuncia', { denuncia }, 60000),
+    /* Pública: solo los campos no sensibles (id corto, lat, lng, tipo, fecha, estado resumido). */
+    denunciasMapa: () => llamar('denunciasMapa'),
     denuncias: (token) => llamar('denuncias', { token }),
     estadoDenuncia: (token, id, estado, nota) => llamar('estadoDenuncia', { token, id, estado, nota }),
     foto: (token, id) => llamar('foto', { token, id }, 45000)

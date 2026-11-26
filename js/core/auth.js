@@ -28,7 +28,7 @@
       sesion = { token: r.token, usuario: r.usuario, exp: Date.now() + (r.expiraEnS || 21600) * 1000 };
     } else {
       const d = G4G.config.acceso.demo;
-      if (!d || usuario.toLowerCase() !== d.usuario || clave !== d.clave) throw new Error('Usuario o clave incorrectos.');
+      if (!d || usuario.toLowerCase() !== String(d.usuario).toLowerCase() || clave !== d.clave) throw new Error('Usuario o clave incorrectos.');
       sesion = { token: 'demo', exp: Date.now() + 8 * 3600e3, usuario: { usuario: d.usuario, nombre: 'Funcionario municipal', municipio: 'Demostración', rol: 'funcionario', demo: true } };
     }
     guardar();

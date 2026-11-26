@@ -49,10 +49,11 @@
       op.estado_legal === 'sin_dato' ? el('div', { class: 'callout callout--warn' }, 'Situación legal sin verificar. Falta el dato actualizado del organismo regulador.') : null,
       el('h4', null, 'Datos'),
       ui().dl([['Tipo', op.tipo], ['Departamento', op.departamento], ['Municipio', op.municipio], ['Socios', op.socios == null ? null : U.fmt(op.socios)], ['Coordenadas', el('span', { class: 'mono' }, op.lat == null ? '—' : U.fmtCoord(op.lat, op.lng))]]),
-      el('h4', null, `Pasivos asociados (${pasivos.length})`),
-      pasivos.length
-        ? el('ul', { class: 'linklist' }, pasivos.map((p) => el('li', null, el('button', { type: 'button', class: 'link', onclick: () => pasivo(p.id) }, p.nombre || p.id), el('span', { class: 'muted' }, ` · ${U.fmt(p.volumen_m3)} m³`))))
-        : el('p', { class: 'muted' }, 'No hay pasivos registrados para este operador.'));
+      /* Los pasivos (colas, relaves) solo los ve un funcionario. */
+      G4G.auth.esFuncionario() ? [el('h4', null, `Pasivos asociados (${pasivos.length})`),
+        pasivos.length
+          ? el('ul', { class: 'linklist' }, pasivos.map((p) => el('li', null, el('button', { type: 'button', class: 'link', onclick: () => pasivo(p.id) }, p.nombre || p.id), el('span', { class: 'muted' }, ` · ${U.fmt(p.volumen_m3)} m³`))))
+          : el('p', { class: 'muted' }, 'No hay pasivos registrados para este operador.')] : null);
 
     ui().drawer.open({
       kicker: `Operador · ${op.id}`, title: op.nombre, subtitle: [op.tipo, op.municipio, op.departamento].filter(Boolean).join(' · '), body,
@@ -99,21 +100,26 @@
   /* ---------------- Denuncia ---------------- */
   function denuncia(id) {
     const d = store().state.denuncias.find((x) => x.id === id); if (!d) return;
+    const fun = G4G.auth.esFuncionario(), conServidor = G4G.api.activo();
     const cerca = cercanos(d.lat, d.lng, G4G.config.radioCercaniaKm);
     const sel = el('select', { class: 'input', onchange: (e) => { store().updateDenuncia(d.id, { estado: e.target.value }); ui().toast('Estado actualizado en este dispositivo.'); } },
       Object.entries(G4G.config.estadosDenuncia).map(([k, v]) => el('option', { value: k, selected: d.estado === k }, v.label)));
 
     const body = el('div', null,
-      aviso('Registro guardado en este dispositivo, separado de la base de datos.'),
+      aviso(conServidor ? 'Copia guardada en este dispositivo. La denuncia recibida está en la base del municipio.' : 'Registro guardado en este dispositivo, separado de la base de datos.'),
       d.foto ? el('img', { class: 'photo', src: d.foto, alt: 'Foto de la denuncia' }) : null,
       ui().dl([['Tipo', d.tipo], ['Fecha', U.fmtDateTime(d.creado)], ['Ubicación', el('span', { class: 'mono' }, U.fmtCoord(d.lat, d.lng))], ['Precisión', d.precision ? `± ${U.fmt(d.precision)} m` : 'No disponible'], ['Descripción', d.descripcion]]),
-      el('h4', null, 'Verificación contra el registro'),
-      cerca.length
-        ? el('ul', { class: 'linklist' }, cerca.slice(0, 6).map((c) => el('li', null,
-          el('button', { type: 'button', class: 'link', onclick: () => (c.tipo === 'operador' ? operador(c.reg.id) : pasivo(c.reg.id)) }, c.reg.nombre || c.reg.id),
-          el('span', { class: 'muted' }, ` · ${c.tipo === 'operador' ? 'operador' : 'pasivo'} · ${U.fmt(c.d, 1)} km `), c.tipo === 'operador' ? ui().estadoChip(c.reg.estado_legal) : null)))
-        : el('div', { class: 'callout callout--warn' }, `Ningún operador ni pasivo registrado en ${G4G.config.radioCercaniaKm} km. Posible actividad no registrada: priorizar visita de verificación.`),
-      el('h4', null, 'Seguimiento'), ui().field('Estado', sel));
+      /* La verificación contra el registro es trabajo del funcionario. */
+      fun ? [el('h4', null, 'Verificación contra el registro'),
+        cerca.length
+          ? el('ul', { class: 'linklist' }, cerca.slice(0, 6).map((c) => el('li', null,
+            el('button', { type: 'button', class: 'link', onclick: () => (c.tipo === 'operador' ? operador(c.reg.id) : pasivo(c.reg.id)) }, c.reg.nombre || c.reg.id),
+            el('span', { class: 'muted' }, ` · ${c.tipo === 'operador' ? 'operador' : 'pasivo'} · ${U.fmt(c.d, 1)} km `), c.tipo === 'operador' ? ui().estadoChip(c.reg.estado_legal) : null)))
+          : el('div', { class: 'callout callout--warn' }, `Ningún operador ni pasivo registrado en ${G4G.config.radioCercaniaKm} km. Posible actividad no registrada: priorizar visita de verificación.`)] : null,
+      el('h4', null, 'Seguimiento'),
+      /* El estado lo cambia el funcionario (en Denuncias recibidas, o aquí en modo demostración). */
+      fun && !conServidor ? ui().field('Estado', sel)
+        : ui().dl([['Envío', d.envio === 'pendiente' ? 'Sin enviar: se enviará sola al volver la señal' : d.envio === 'enviada' ? 'Enviada a la autoridad' : 'Guardada en este dispositivo'], ['Estado', ui().estadoDenunciaChip(d.estado)]]));
 
     ui().drawer.open({
       kicker: `Denuncia · ${d.codigo || d.id}`, title: d.tipo, subtitle: U.fmtDateTime(d.creado), body,
@@ -124,5 +130,17 @@
     });
   }
 
-  G4G.detalle = { operador, pasivo, denuncia, cercanos, frescura };
+  /* Denuncia hecha en otro dispositivo, vista por el público: solo campos no sensibles. */
+  function denunciaRed(p) {
+    const est = (G4G.config.estadosDenunciaPublico[p.estado] || (G4G.config.estadosDenuncia[p.estado]) || { label: p.estado }).label;
+    const fecha = typeof p.fecha === 'number' ? U.fmtDateTime(p.fecha) : U.fmtDate(p.fecha);
+    const body = el('div', null,
+      aviso('Denuncia de la ciudadanía. Aquí solo se muestran el tipo, la fecha y el estado: nunca datos de quien la hizo ni su foto.'),
+      ui().dl([['Tipo', p.tipo], ['Fecha', fecha], ['Estado', est], ['Código', el('span', { class: 'mono' }, p.codigo)], ['Ubicación', el('span', { class: 'mono' }, U.fmtCoord(p.lat, p.lng))]]),
+      el('p', { class: 'muted small' }, 'Una persona del municipio revisa cada denuncia. Registrarla sirve para verificar, no para castigar.'));
+    ui().drawer.open({ kicker: `Denuncia · ${p.codigo}`, title: p.tipo, subtitle: fecha, body,
+      footer: [ui().button('Denunciar en este punto', { icon: 'denuncias', onclick: () => { ui().drawer.close(); G4G.app.go('denuncias', { ubicacion: { lat: p.lat, lng: p.lng, origen: 'mapa' } }); } })] });
+  }
+
+  G4G.detalle = { operador, pasivo, denuncia, denunciaRed, cercanos, frescura };
 })();

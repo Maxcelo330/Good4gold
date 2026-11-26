@@ -22,6 +22,8 @@
   --nav: #1F1D1A;
   --nav-2: #2B2824;
   --risk: #B3261E;
+  /* Pasivos (colas y relaves): familia violeta, de más a menos prioridad. No usar rojo para pasivos. */
+  --pasivo-1: #3E1670; --pasivo-2: #6B3FA0; --pasivo-3: #8E6BBF; --pasivo-4: #A98FD0;
   --value: #8A6410;
 
   /* Tipografías del INE Bolivia: Montserrat (títulos), Roboto (texto), Roboto Condensed (cifras y rótulos). */

@@ -67,8 +67,9 @@
     pasivos.forEach((p) => {
       const cx = x(p.riesgo), cy = p.valor === null ? yBand + 6 + jitter(p.id) : y(p.valor);
       const sel = o.selected === p.id;
-      const dot = svg('circle', {
-        cx, cy, r: sel ? 7 : 5.5, class: 'scatter__dot' + (sel ? ' is-selected' : ''), tabindex: 0, role: 'button', 'aria-label': `${p.nombre || p.id}: riesgo ${p.riesgo}, valor ${p.valor === null ? 'sin dato' : p.valor}`,
+      const r = sel ? 8 : 6.5;
+      const dot = svg('polygon', {
+        points: ui().puntosHexagono(cx, cy, r), class: 'scatter__dot' + (sel ? ' is-selected' : ''), tabindex: 0, role: 'button', 'aria-label': `${p.nombre || p.id}: riesgo ${p.riesgo}, valor ${p.valor === null ? 'sin dato' : p.valor}`,
         onmousemove: (ev) => ui().tip.show(el('div', null, el('strong', null, p.nombre || p.id), el('div', null, `Riesgo ${p.riesgo} · Valor ${p.valor === null ? 'sin dato' : p.valor}`), el('div', { class: 'tip__sub' }, p.clase.label)), ev),
         onmouseleave: () => ui().tip.hide(),
         onclick: () => o.onSelect && o.onSelect(p),

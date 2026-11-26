@@ -13,7 +13,7 @@ Aplicación de **verificación, control y reporte** para el desafío ORO-4.2 (Go
 | **Consultar** | Tarjetas o tabla de operadores con filtros por situación legal. La ficha muestra **qué requisitos le faltan** y permite denunciar en su ubicación. |
 | **Denunciar** | Asistente en 3 pasos (qué viste → dónde → foto y envío) con código de seguimiento. Compara la ubicación con el registro y avisa si no hay operaciones registradas cerca. |
 
-**Panel técnico** (funcionarios): **Resumen** del registro, **Pasivos** (ranking de colas por riesgo × valor) y **Datos** (carga del Excel/CSV, conexión en línea y validación de calidad).
+**Panel técnico** (funcionarios): **Resumen** del registro, **Pasivos** (ranking de colas por riesgo × valor) y **Datos** (carga del Excel/CSV, conexión en línea y validación de calidad). **Detecciones revisadas**: zonas marcadas en imágenes satelitales (ver abajo).
 
 **Solo lectura:** la app nunca escribe en la base. Las denuncias se guardan en el dispositivo, separadas, y se exportan (GeoJSON / CSV / JSON con fotos) para que un funcionario las incorpore.
 
@@ -35,11 +35,22 @@ Límites que conviene conocer:
 ## Acceso por perfil, backend e instalación (v0.4.0)
 
 - **Público (sin cuenta):** Inicio, Mapa, Consultar, Denunciar y Configuración. **No ve los operadores "No legal" ni sus pasivos** (confidencialidad), ni la cifra de "No legales".
-- **Funcionario del municipio (Ingresar, arriba a la derecha):** ve toda la base y el menú **Municipio**: Resumen, Pasivos, Datos, **Registrar datos** (alta y edición de operadores y pasivos) y **Denuncias recibidas** (estado y nota de seguimiento). Las fichas muestran el botón Editar.
+- **Funcionario del municipio (Ingresar, arriba a la derecha):** ve toda la base y el menú **Municipio**: Resumen, Pasivos, Datos, **Detecciones revisadas**, **Registrar datos** (alta y edición de operadores y pasivos) y **Denuncias recibidas** (estado y nota de seguimiento). Las fichas muestran el botón Editar.
 - **Backend:** `backend/Codigo.gs` (Google Apps Script, gratis) junto a la hoja de Google. Guía: [backend/INSTRUCCIONES.md](backend/INSTRUCCIONES.md). Se conecta con `backend.url` en `js/config/config.js`.
   Sin backend la app funciona en **modo demostración**: cuenta `municipio` / `demo2026`, lo confidencial se oculta solo en pantalla y los cambios quedan en el dispositivo.
 - **Instalar en el celular:** Configuración → *Instalar aplicación* (Android/Chrome/Edge) o instrucciones para iPhone (Safari → Compartir → Agregar a inicio). Requiere la página publicada por https (GitHub Pages); abierta como archivo no se instala.
 - **Sin conexión:** `sw.js` guarda la app; abre sin señal con la última copia pública. Una denuncia hecha sin señal queda "Sin enviar" y se envía sola al volver la conexión. Al cambiar archivos, subir `VERSION` en `sw.js`.
+
+## Detecciones revisadas (solo funcionarios)
+Sección **Municipio → Detecciones revisadas**: muestra en un mapa (satélite Esri) y en una lista ordenable las zonas que una persona marcó como **"Parece actividad minera"** en el visor de imágenes satelitales (modelo de aprendizaje automático + revisión visual). Cada zona tiene una ficha con área, puntaje del modelo (relativo, no es una probabilidad), coordenadas, distancia al río y al poblado más cercano, la nota de quien revisó y, si existe, la opinión de Claude. Se puede descargar todo como **GeoJSON** o **CSV** (con BOM para Excel).
+
+- **Lenguaje:** siempre "posible actividad minera, por verificar en campo". No indica legalidad ni presencia de mercurio, y el registro de la AJAM aún no se consultó.
+- **Confidencialidad (decisión D-002):** son datos sensibles. La sección pertenece al grupo `tecnico`: sin sesión de funcionario no aparece en el menú, no se construye y su dirección (`#/deteccion`) lleva a Ingresar. **El repositorio no incluye ningún dato real**; el service worker tampoco guarda archivos `.geojson` ni `zonas-revisadas*`. Al cerrar sesión se limpia la pantalla, pero el archivo cargado sigue guardado en ese dispositivo hasta pulsar **Quitar las zonas de este dispositivo** (en un equipo compartido, quítelas antes de salir).
+- **Cómo cargar los datos:**
+  1. En el visor de imágenes se genera `zonas_confirmadas.geojson` (FeatureCollection de Polygon/MultiPolygon en WGS84, con `id` y propiedades como `area_ha`, `puntaje_modelo`, `poblado_cercano`, `dist_rio_m`, `fecha_revision`, `nota_revision`, `opinion_claude`).
+  2. Ingrese como funcionario (demostración: `municipio` / `demo2026`), abra **Detecciones revisadas** y pulse **Cargar archivo de zonas (GeoJSON)**. El archivo se valida: se ignoran las zonas sin geometría válida, sin `id` o con `id` repetido, y se muestra cuántas.
+  3. Las zonas se guardan solo en este dispositivo (`localStorage`, clave `g4g_zonas_revisadas_v1`, cerca de 5 MB de límite; si no caben se avisa y se ven solo hasta recargar).
+- **Alternativas (opcionales):** `G4G.config.deteccion.url` en `js/config/config.js` (por defecto vacía): si tiene la dirección de un GeoJSON accesible desde el navegador (con CORS), la sección lo descarga al abrirse sin datos o con el botón "Actualizar desde la dirección configurada". También puede definirse `window.G4G_ZONAS_REVISADAS` (FeatureCollection) en un archivo `js/data/zonas-revisadas.js` enlazado en `index.html`; **ese archivo no se crea ni se sube** mientras los datos sean confidenciales.
 
 ## Diseño
 - **Tipografías del INE Bolivia**: Montserrat (títulos), Roboto (texto) y Roboto Condensed (cifras y rótulos). Se verificó en el HTML de ine.gob.bo (22-11-2026); gob.bo usa Open Sans. Están incluidas en `css/fonts/` (licencias SIL OFL / Apache 2.0), así que funcionan sin conexión.
@@ -63,7 +74,7 @@ js/core/        app.js (módulos, rutas y grupos de menú) · store.js (datos) �
                 scoring.js (riesgo × valor) · ui.js · charts.js · util.js
 js/data/        seed.js (datos simulados) · rios.js (ríos principales) · hidro-zona.js (detalle norte de La Paz)
 js/modules/     una sección por archivo: inicio, mapa, operadores (Consultar), denuncias (Denunciar),
-                resumen, pasivos, datos
+                resumen, pasivos, datos, deteccion (Detecciones revisadas)
                 detalle.js  fichas laterales (no es una sección)
 js/vendor/      Leaflet (mapa) y SheetJS (lector de Excel), incluidos para uso sin conexión
 ```

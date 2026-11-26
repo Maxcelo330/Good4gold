@@ -7,10 +7,10 @@
      municipio (los datos confidenciales nunca se guardan aquí).
    Al cambiar archivos de la app, suba la VERSION para renovar la copia.
    ========================================================================== */
-const VERSION = 'g4g-0.4.0';
+const VERSION = 'g4g-0.4.1';
 const ARCHIVOS = [
   './', 'index.html', 'manifest.webmanifest',
-  'css/fonts.css', 'css/base.css', 'css/components.css', 'css/public.css', 'css/acceso.css',
+  'css/fonts.css', 'css/base.css', 'css/components.css', 'css/public.css', 'css/acceso.css', 'css/deteccion.css',
   'css/fonts/Montserrat-latin-1.woff2', 'css/fonts/Montserrat-latin-ext-0.woff2', 'css/fonts/Roboto-latin-3.woff2',
   'css/fonts/Roboto-latin-ext-2.woff2', 'css/fonts/RobotoCondensed-latin-5.woff2', 'css/fonts/RobotoCondensed-latin-ext-4.woff2',
   'icons/icon-192.png', 'icons/icon-512.png', 'icons/apple-touch-icon.png', 'icons/favicon-32.png',
@@ -21,7 +21,7 @@ const ARCHIVOS = [
   'js/data/seed.js', 'js/data/rios.js', 'js/data/hidro-zona.js',
   'js/modules/detalle.js', 'js/modules/inicio.js', 'js/modules/resumen.js', 'js/modules/mapa.js', 'js/modules/operadores.js',
   'js/modules/pasivos.js', 'js/modules/denuncias.js', 'js/modules/datos.js', 'js/modules/registro.js', 'js/modules/buzon.js',
-  'js/modules/configuracion.js', 'js/modules/ingresar.js'
+  'js/modules/configuracion.js', 'js/modules/ingresar.js', 'js/modules/deteccion.js'
 ];
 
 self.addEventListener('install', (e) => {
@@ -40,6 +40,7 @@ self.addEventListener('fetch', (e) => {
   if (req.method !== 'GET') return;
   const url = new URL(req.url);
   if (url.origin !== self.location.origin) return;          // otros sitios: sin tocar
+  if (/\.geojson$/i.test(url.pathname) || /zonas-revisadas/i.test(url.pathname)) return;   // zonas confidenciales: nunca se guardan aquí
   e.respondWith(redDespuesCopia(req));
 });
 

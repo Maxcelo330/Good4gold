@@ -25,7 +25,9 @@
     salir:      'M15 4h4v16h-4M10 8l-4 4 4 4M6 12h10',
     editar:     'M4 20h4L19 9l-4-4L4 16zM13.5 6.5l4 4',
     mas:        'M12 5v14M5 12h14',
-    buzon:      'M3 13h5l1.5 3h5L16 13h5M3 13l3-8h12l3 8v6H3z'
+    buzon:      'M3 13h5l1.5 3h5L16 13h5M3 13l3-8h12l3 8v6H3z',
+    zona:       'M4 9l5-5 9 3 3 8-6 6-9-2zM12 12h.01',
+    actualizar: 'M20 12a8 8 0 1 1-2.5-5.8M20 4v5h-5'
   };
   function icon(name, size = 18) {
     return svg('svg', { viewBox: '0 0 24 24', width: size, height: size, fill: 'none', stroke: 'currentColor', 'stroke-width': 1.7, 'stroke-linecap': 'round', 'stroke-linejoin': 'round', 'aria-hidden': 'true' }, svg('path', { d: ICONOS[name] || '' }));
@@ -38,7 +40,12 @@
     if (forma === 'circulo') return svg('svg', g, svg('circle', { cx: c, cy: c, r: c - 1, fill: color }));
     if (forma === 'triangulo') return svg('svg', g, svg('path', { d: `M${c} 1.2 L${s - 1} ${s - 1.4} L1 ${s - 1.4} Z`, fill: color }));
     if (forma === 'cuadrado') return svg('svg', g, svg('rect', { x: 1.5, y: 1.5, width: s - 3, height: s - 3, fill: color }));
+    if (forma === 'hexagono') return svg('svg', g, svg('polygon', { points: puntosHexagono(c, c, c - 0.8), fill: color }));
     return svg('svg', g, svg('circle', { cx: c, cy: c, r: c - 1.6, fill: 'none', stroke: color, 'stroke-width': w + 0.4 }));
+  }
+  /* Hexágono de punta arriba (marcador de los pasivos): centro (cx, cy) y radio r. */
+  function puntosHexagono(cx, cy, r) {
+    return [-90, -30, 30, 90, 150, 210].map((a) => (cx + r * Math.cos((a * Math.PI) / 180)).toFixed(2) + ',' + (cy + r * Math.sin((a * Math.PI) / 180)).toFixed(2)).join(' ');
   }
   function estadoChip(id) {
     const e = G4G.config.estados[id] || G4G.config.estados.sin_dato;
@@ -48,7 +55,7 @@
     return el('span', { class: 'chip chip--clase n' + clase.nivel, title: clase.label }, clase.corto || clase.label);
   }
   function estadoDenunciaChip(id) {
-    const e = G4G.config.estadosDenuncia[id] || { label: id };
+    const e = G4G.config.estadosDenuncia[id] || G4G.config.estadosDenunciaPublico[id] || { label: id };
     return el('span', { class: 'chip chip--den d-' + id }, e.label);
   }
 
@@ -171,5 +178,5 @@
     return el('dl', { class: 'dl' }, pairs.filter(Boolean).map(([k, v]) => [el('dt', null, k), el('dd', null, v === null || v === undefined || v === '' ? '—' : v)]));
   }
 
-  G4G.ui = { icon, shapeSvg, estadoChip, claseChip, estadoDenunciaChip, meter, kpi, card, empty, button, table, drawer: { init: drawerInit, open: drawerOpen, close: drawerClose }, toast, tip, field, dl };
+  G4G.ui = { icon, shapeSvg, puntosHexagono, estadoChip, claseChip, estadoDenunciaChip, meter, kpi, card, empty, button, table, drawer: { init: drawerInit, open: drawerOpen, close: drawerClose }, toast, tip, field, dl };
 })();

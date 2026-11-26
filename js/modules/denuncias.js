@@ -1,6 +1,8 @@
 /* Módulo: Denunciar. Asistente en tres pasos (qué viste, dónde, foto y envío).
-   Se guarda en el dispositivo (no toca la base) y se exporta para el
-   funcionario. Si se llega desde el mapa, la ubicación ya viene marcada. */
+   Con base en línea (backend) la denuncia se envía a la hoja del municipio y aparece como punto azul
+   en el mapa de todos los dispositivos; sin señal queda "Sin enviar" y se envía sola al volver.
+   Sin backend (modo demostración) se guarda solo en este dispositivo y se exporta para el funcionario.
+   Si se llega desde el mapa, la ubicación ya viene marcada. */
 (function () {
   const G4G = (window.G4G = window.G4G || {});
   const U = G4G.util, { el } = U;
@@ -165,7 +167,7 @@
       el('p', null, d.envio === 'enviada' ? 'Se envió a la autoridad del municipio para su verificación. Guarda el código para hacer seguimiento.'
         : d.envio === 'enviando' ? 'Enviando a la autoridad del municipio…'
         : d.envio === 'pendiente' ? 'No hay conexión con el servidor ahora. Quedó guardada en este dispositivo y se enviará sola cuando vuelva la señal.'
-        : 'Quedó guardada en este dispositivo (modo demostración, sin servidor). Puedes exportarla y entregarla a la autoridad.'),
+        : 'Quedó guardada en este dispositivo (modo demostración, sin base en línea): no la verán otros dispositivos. Puedes exportarla y entregarla a la autoridad.'),
       el('div', { class: 'row-gap center' },
         reg ? ui().button('Ver en el mapa', { icon: 'mapa', onclick: () => G4G.app.go('mapa', { foco: { lat: reg.lat, lng: reg.lng, id: reg.id } }) }) : null,
         ui().button('Hacer otra denuncia', { kind: 'primary', onclick: () => { b = nuevo(); pintar(); } })));
@@ -184,7 +186,7 @@
     const csv = () => U.download('denuncias.csv', 'text/csv;charset=utf-8', U.toCSV(d, [{ key: 'codigo', label: 'codigo' }, { key: 'tipo', label: 'tipo' }, { key: 'descripcion', label: 'descripcion' }, { label: 'fecha', get: (x) => new Date(x.creado).toISOString() }, { key: 'lat', label: 'lat' }, { key: 'lng', label: 'lng' }, { key: 'precision', label: 'precision_m' }, { key: 'estado', label: 'estado' }]));
     const json = () => U.download('denuncias-con-fotos.json', 'application/json', JSON.stringify(d));
     const acciones = d.length ? [ui().button('GeoJSON', { icon: 'descargar', onclick: geo }), ui().button('CSV', { icon: 'descargar', onclick: csv }), ui().button('Con fotos', { icon: 'descargar', onclick: json })] : null;
-    return ui().card(`Mis denuncias (${d.length})`, [cuerpo, el('p', { class: 'muted small' }, G4G.api.activo() ? 'Copia en este dispositivo. Las que dicen "Sin enviar" se envían solas al volver la señal.' : 'Se guardan solo en este dispositivo, separadas de la base de datos.')], acciones);
+    return ui().card(`Mis denuncias (${d.length})`, [cuerpo, el('p', { class: 'muted small' }, G4G.api.activo() ? 'Copia en este dispositivo. Las que dicen "Sin enviar" se envían solas al volver la señal.' : 'Modo demostración: se guardan solo en este dispositivo, separadas de la base de datos.')], acciones);
   }
 
   function pintar() {

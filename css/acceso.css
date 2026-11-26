@@ -22,11 +22,24 @@
 .icon-btn:hover { background: var(--line-2); color: var(--ink); }
 .readonly--on { color: #9FD3B2; }
 
+/* Indicador de conexión con la base (arriba a la derecha) */
+.conn { display: inline-flex; align-items: center; gap: 7px; font: 700 12px/1 var(--f-cond); letter-spacing: .06em; padding: 7px 10px; border: 1px solid; white-space: nowrap; background: #fff; }
+.conn__dot { width: 9px; height: 9px; border-radius: 50%; background: currentColor; flex: none; }
+.conn__short { display: none; }
+.conn--ok { color: #1E5B3A; border-color: #A9D2B8; background: #E1F0E6; }
+.conn--demo { color: #7A4B00; border-color: #E2C777; background: #FBEFD0; }
+.conn--busy { color: var(--ink-3); border-color: var(--line); }
+.conn--busy .conn__dot { animation: conn-pulso 1.1s ease-in-out infinite; }
+.conn--off { color: #8A1C15; border-color: #E5A8A2; background: #FBE6E3; }
+@keyframes conn-pulso { 50% { opacity: .25; } }
+@media (max-width: 1380px) { .conn__full { display: none; } .conn__short { display: inline; } }
+
 @media (max-width: 860px) {
   .nav__app { display: none !important; }
   .topbar { gap: 8px; }
   .topbar__right { gap: 6px; }
   .topbar .origin { display: none; }
+  .conn { padding: 6px 8px; font-size: 11px; gap: 5px; }
   .account { padding: 6px 9px; }
   .account--on .account__txt span { display: none; }
   .account--on .account__txt strong { max-width: 92px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }

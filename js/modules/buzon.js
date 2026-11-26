@@ -21,6 +21,7 @@
       await G4G.api.estadoDenuncia(G4G.auth.token(), d.id, estado, nota);
       d.estado = estado; if (nota !== undefined) d.nota = nota; d.atendido_por = G4G.auth.usuario().usuario;
       ui().toast(`Denuncia ${d.codigo}: ${G4G.config.estadosDenuncia[estado].label.toLowerCase()}.`); pintar();
+      G4G.store.cargarDenunciasRed().catch(() => {});   // el mapa cambia de color si corresponde
     } catch (e) { ui().toast('No se pudo actualizar: ' + e.message, 'warn'); }
   }
 
@@ -53,6 +54,9 @@
     });
   }
   const fecha = (v) => { if (!v) return ''; const t = typeof v === 'number' ? v : Date.parse(v); return Number.isNaN(t) ? String(v) : U.fmtDateTime(t); };
+
+  /* Para que el mapa abra la misma ficha de seguimiento. */
+  G4G.buzon = { abrir: (d) => abrir(d) };
 
   function pintar() {
     if (!raiz) return;

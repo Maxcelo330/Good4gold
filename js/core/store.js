@@ -6,15 +6,22 @@
      (config.acceso.ocultarAlPublico). Con backend, el servidor ya los filtra y los
      datos confidenciales nunca se guardan en el dispositivo.
    - denuncias: se guardan en este dispositivo y, si hay backend, se envían
-     a la hoja "Denuncias" (con reintento si no hay señal).
+     a la hoja "Denuncias" (con reintento si no hay señal). Con backend, el mapa muestra
+     las denuncias de TODOS los dispositivos (state.denunciasRed) y se actualizan solas.
+   - pasivos (colas/relaves): el público NO los recibe ni los ve nunca; solo los funcionarios.
    ========================================================================== */
 (function () {
   const G4G = (window.G4G = window.G4G || {});
   const U = G4G.util;
-  const K_DATASET = 'g4g.dataset.v1', K_DENUNCIAS = 'g4g.denuncias.v1', K_FUENTE = 'g4g.fuente.v1';
+  const K_DATASET = 'g4g.dataset.v1', K_DENUNCIAS = 'g4g.denuncias.v1', K_FUENTE = 'g4g.fuente.v1', K_DENRED = 'g4g.denred.v1';
 
   const state = {
     operadores: [], pasivos: [], denuncias: [],
+    /* Denuncias que vienen del servidor (todos los dispositivos). Para el público son solo campos
+       no sensibles; para un funcionario, la lista completa. */
+    denunciasRed: [],
+    /* modo: 'demo' (sin backend) | 'cargando' | 'linea' (en línea con la base) | 'sin-red' (hay backend pero no responde) */
+    conexion: { modo: G4G.api.activo() ? 'cargando' : 'demo', ultima: null, error: null },
     meta: { origen: 'demo', archivo: null, cargado: Date.now(), informe: null }
   };
   let completo = { operadores: [], pasivos: [] };
@@ -27,7 +34,8 @@
   const ocultos = () => G4G.config.acceso.ocultarAlPublico || [];
   function filtrarPublico(d) {
     const fuera = new Set(d.operadores.filter((o) => ocultos().includes(o.estado_legal)).map((o) => o.id));
-    return { operadores: d.operadores.filter((o) => !fuera.has(o.id)), pasivos: d.pasivos.filter((p) => !p.operador_id || !fuera.has(p.operador_id)) };
+    /* El público no ve ningún pasivo (colas, relaves, desmontes): solo los funcionarios. */
+    return { operadores: d.operadores.filter((o) => !fuera.has(o.id)), pasivos: [] };
   }
   function aplicarVista() {
     const v = esFuncionario() ? completo : filtrarPublico(completo);
@@ -36,6 +44,8 @@
   /* Situaciones legales que la persona puede ver (para leyendas y filtros). */
   const estadosVisibles = () => Object.entries(G4G.config.estados)
     .filter(([k]) => esFuncionario() || !ocultos().includes(k)).sort((a, b) => a[1].orden - b[1].orden);
+  /* Situaciones legales que se dibujan en el mapa: el público solo ve verde y amarillo. */
+  const estadosEnMapa = () => estadosVisibles().filter(([k]) => esFuncionario() || (G4G.config.acceso.mapaPublico || []).includes(k));
 
   /* Con backend solo se guarda en el dispositivo la parte pública. */
   function persistir() {
@@ -49,7 +59,11 @@
       const raw = localStorage.getItem(K_DATASET);
       const d = raw ? JSON.parse(raw) : null;
       /* Una copia del servidor no vale si ya no hay servidor configurado. */
-      if (d && !(d.meta && d.meta.origen === 'servidor' && !G4G.api.activo())) { completo = { operadores: d.operadores, pasivos: d.pasivos }; state.meta = d.meta; cargado = true; }
+      if (d && !(d.meta && d.meta.origen === 'servidor' && !G4G.api.activo())) {
+        /* Con backend, aunque una versión anterior hubiera guardado pasivos, solo se usa la parte pública. */
+        completo = G4G.api.activo() ? filtrarPublico({ operadores: d.operadores, pasivos: d.pasivos }) : { operadores: d.operadores, pasivos: d.pasivos };
+        state.meta = d.meta; cargado = true;
+      }
     } catch (e) { /* si falla se usa la demostración */ }
     if (!cargado && G4G.api.activo()) {
       completo = { operadores: [], pasivos: [] };
@@ -57,6 +71,9 @@
     } else if (!cargado) cargarDemo(false);
     aplicarVista();
     try { state.denuncias = JSON.parse(localStorage.getItem(K_DENUNCIAS) || '[]'); } catch (e) { state.denuncias = []; }
+    /* Última lista pública de denuncias (para verla sin señal). Nunca se guarda la lista de un funcionario. */
+    if (G4G.api.activo()) { try { const c = JSON.parse(localStorage.getItem(K_DENRED) || '[]'); state.denunciasRed = Array.isArray(c) ? c.filter((x) => x && x.publica) : []; } catch (e) { state.denunciasRed = []; } }
+    else { try { localStorage.removeItem(K_DENRED); } catch (e) { /* nada */ } }
   }
 
   function cargarDemo(notificar = true) {
@@ -84,25 +101,39 @@
   }
 
   /* Datos que llegan del backend (filas con los encabezados del Excel). */
+  let firmaDatos = '';
   function cargarDelServidor(r) {
+    /* Si nada cambió desde la última vez no se rehace ninguna pantalla (así la actualización automática no molesta). */
+    const firma = JSON.stringify([r.nivel, r.operadores, r.pasivos]);
+    if (firma === firmaDatos && state.meta.origen === 'servidor') { state.meta.cargado = Date.now(); return false; }
+    firmaDatos = firma;
     const ops = G4G.importer.mapear(r.operadores || [], 'operadores'), pas = G4G.importer.mapear(r.pasivos || [], 'pasivos');
     completo = { operadores: ops.registros, pasivos: pas.registros };
     state.meta = { origen: 'servidor', archivo: r.nivel === 'completo' ? 'Base del municipio (completa)' : 'Base del municipio', cargado: Date.now(),
       informe: { operadores: { hoja: 'Operadores', filas: (r.operadores || []).length, reconocidas: ops.reconocidas, ignoradas: ops.ignoradas, faltantes: ops.faltantes },
         pasivos: { hoja: 'Pasivos', filas: (r.pasivos || []).length, reconocidas: pas.reconocidas, ignoradas: pas.ignoradas, faltantes: pas.faltantes } } };
     aplicarVista(); persistir(); emit();
+    return true;
   }
 
   /* Al ingresar o salir: con backend se piden los datos que corresponden al perfil. */
   async function alCambiarSesion() {
     if (G4G.api.activo()) {
-      if (esFuncionario()) cargarDelServidor(await G4G.api.completo(G4G.auth.token()));
-      else {
+      firmaDenuncias = '';
+      if (esFuncionario()) {
+        cargarDelServidor(await G4G.api.completo(G4G.auth.token()));
+        state.denunciasRed = []; G4G.bus.emit('denuncias:changed');
+        cargarDenunciasRed().catch(() => {});
+      } else {
         completo = filtrarPublico(completo);   // lo confidencial sale de la memoria
-        aplicarVista(); emit();
+        firmaDatos = '';
+        /* La lista completa de denuncias también: se vuelve a la lista pública que había guardada. */
+        try { const c = JSON.parse(localStorage.getItem(K_DENRED) || '[]'); state.denunciasRed = Array.isArray(c) ? c.filter((x) => x && x.publica) : []; } catch (e) { state.denunciasRed = []; }
+        aplicarVista(); emit(); G4G.bus.emit('denuncias:changed');
         G4G.api.publico().then(cargarDelServidor).catch(() => {});
+        cargarDenunciasRed().catch(() => {});
       }
-    } else { aplicarVista(); emit(); }
+    } else { aplicarVista(); emit(); G4G.bus.emit('denuncias:changed'); }
   }
 
   /* Alta o edición de un registro por un funcionario. */
@@ -222,9 +253,10 @@
           try { cargarDelServidor(await G4G.api.completo(G4G.auth.token())); }
           catch (e) { if (e.codigo === 'sesion') { G4G.auth.vencida(); return { estado: 'sesion' }; } throw e; }
         } else cargarDelServidor(await G4G.api.publico());
+        marcarConexion(true);
         enviarPendientes();
         return { estado: 'ok' };
-      } catch (e) { return { estado: 'error', mensaje: e.message }; }
+      } catch (e) { marcarConexion(false, e.message); return { estado: 'error', mensaje: e.message }; }
     }
     const cfg = G4G.config.fuenteRemota, guardada = fuenteGuardada() || {};
     const urlOp = cfg.operadoresUrl || guardada.operadores || '', urlPa = cfg.pasivosUrl || guardada.pasivos || '';
@@ -238,12 +270,94 @@
     } catch (e) { return { estado: 'error', mensaje: e.message }; }
   }
 
+  /* ---- Denuncias de todos los dispositivos (con backend) ---- */
+  const MD = () => G4G.config.mapaDenuncias;
+  let firmaDenuncias = '';
+  function marcarConexion(ok, mensaje) {
+    state.conexion = ok ? { modo: 'linea', ultima: Date.now(), error: null } : { modo: 'sin-red', ultima: state.conexion.ultima, error: mensaje || 'Sin respuesta' };
+    G4G.bus.emit('conexion:changed');
+  }
+  /* Público: lista mínima. Funcionario: lista completa (la misma que Denuncias recibidas). */
+  async function cargarDenunciasRed() {
+    if (!G4G.api.activo()) return false;
+    const fun = esFuncionario();
+    let lista;
+    try {
+      if (fun) lista = (await G4G.api.denuncias(G4G.auth.token())).denuncias.map((d) => Object.assign({}, d, { completa: true }));
+      else lista = (await G4G.api.denunciasMapa()).denuncias.map((d) => ({ id: d.id, codigo: d.id, lat: Number(d.lat), lng: Number(d.lng), tipo: d.tipo, creado: d.fecha, estado: d.estado, publica: true }));
+    } catch (e) {
+      if (e.codigo === 'sesion') G4G.auth.vencida();
+      marcarConexion(false, e.message);
+      throw e;
+    }
+    if (fun !== esFuncionario()) return false;   // la sesión cambió mientras se esperaba la respuesta
+    marcarConexion(true);
+    const firma = JSON.stringify(lista);
+    if (firma !== firmaDenuncias) {
+      firmaDenuncias = firma; state.denunciasRed = lista;
+      if (!fun) { try { localStorage.setItem(K_DENRED, JSON.stringify(lista)); } catch (e) { /* sin persistencia */ } }
+      G4G.bus.emit('denuncias:changed');
+    }
+    return true;
+  }
+
+  const estaAbierta = (e) => e === 'nueva' || e === 'en_revision' || e === 'abierta';
+  /* Solo funcionarios: ¿hay una operación "No legal" a menos de radioNoLegalKm? */
+  function cercaNoLegal(lat, lng) {
+    const km = MD().radioNoLegalKm;
+    return completo.operadores.some((o) => ocultos().includes(o.estado_legal) && o.lat != null && U.haversineKm({ lat, lng }, o) <= km);
+  }
+  /* Puntos del mapa: lo del servidor + lo de este dispositivo que el servidor aún no tiene (sin enviar o modo demostración).
+     rojo (solo funcionarios) = denuncia abierta en revisión o sobre una operación no legal. Las descartadas no se dibujan. */
+  function puntosDenuncias() {
+    const fun = esFuncionario(), vistos = new Set(), out = [];
+    const nodo = (d, local) => {
+      if (!Number.isFinite(d.lat) || !Number.isFinite(d.lng) || d.estado === 'descartada') return;
+      const rojo = fun && estaAbierta(d.estado) && (MD().estadosRojos.includes(d.estado) || cercaNoLegal(d.lat, d.lng));
+      out.push({ key: (local ? 'l_' : 'r_') + d.id, codigo: d.codigo, lat: d.lat, lng: d.lng, tipo: d.tipo, estado: d.estado || 'nueva', fecha: d.creado, local, pendiente: local && d.envio === 'pendiente', rojo, ref: d });
+    };
+    state.denunciasRed.forEach((d) => { vistos.add(d.codigo); nodo(d, false); });
+    state.denuncias.forEach((d) => { if (!vistos.has(d.codigo)) nodo(d, true); });
+    return out;
+  }
+  /* Denuncias nuevas sin revisar (para el Resumen del funcionario). */
+  const denunciasNuevas = () => (G4G.api.activo() ? state.denunciasRed.filter((d) => d.completa && d.estado === 'nueva') : state.denuncias.filter((d) => d.estado === 'nueva')).length;
+
+  /* Actualización automática: al abrir, cada refrescoSeg mientras la pestaña se ve, y al volver la señal o a la pestaña. */
+  let timerAuto = null, ultimoAuto = 0;
+  async function refrescoAuto(forzar) {
+    if (!G4G.api.activo()) return;
+    if (!forzar && document.visibilityState !== 'visible') return;
+    ultimoAuto = Date.now();
+    if (document.body.dataset.vista === 'registro') { enviarPendientes(); await cargarDenunciasRed().catch(() => {}); }   // no pisar un formulario a medias
+    else { await sincronizar(); await cargarDenunciasRed().catch(() => {}); }
+  }
+  function iniciarAuto() {
+    if (timerAuto || !G4G.api.activo()) return;
+    timerAuto = setInterval(() => refrescoAuto(false), Math.max(5, MD().refrescoSeg) * 1000);
+    document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && Date.now() - ultimoAuto > 15000) refrescoAuto(true); });
+    window.addEventListener('online', () => refrescoAuto(true));
+  }
+  /* Botón "Actualizar": datos del registro y denuncias, y reintenta las que están sin enviar. */
+  async function actualizarAhora() {
+    if (!G4G.api.activo()) return { estado: 'demo' };
+    ultimoAuto = Date.now();
+    const r = await sincronizar();
+    await cargarDenunciasRed().catch(() => {});
+    return r;
+  }
+
   /* Denuncias guardadas sin señal: se envían cuando vuelve la conexión. */
   let enviando = false;
   async function enviarDenuncia(d) {
-    const r = await G4G.api.denuncia({ id: d.id, codigo: d.codigo, creado: new Date(d.creado).toISOString(), tipo: d.tipo, descripcion: d.descripcion, lat: d.lat, lng: d.lng, precision: d.precision, foto: d.foto || '' });
+    const r = await G4G.api.denuncia({ id: d.id, codigo: d.codigo, creado: new Date(d.creado).toISOString(), tipo: d.tipo, descripcion: d.descripcion, lat: d.lat, lng: d.lng, precision: d.precision, foto: d.foto || '', dispositivo: dispositivoId(), web: '' });
     updateDenuncia(d.id, { envio: 'enviada', enviada: Date.now(), codigo: r.codigo || d.codigo });
+    cargarDenunciasRed().catch(() => {});   // el punto aparece en el mapa de todos
     return r;
+  }
+  /* Identificador anónimo de este dispositivo: solo sirve al servidor para frenar envíos masivos. */
+  function dispositivoId() {
+    try { let v = localStorage.getItem('g4g.dispositivo.v1'); if (!v) { v = U.uid('D'); localStorage.setItem('g4g.dispositivo.v1', v); } return v; } catch (e) { return 'sin-id'; }
   }
   async function enviarPendientes() {
     if (!G4G.api.activo() || enviando) return 0;
@@ -259,7 +373,7 @@
   window.addEventListener('online', () => enviarPendientes());
 
   G4G.store = {
-    state, init, sincronizar, alCambiarSesion, guardarRegistro, estadosVisibles, enviarDenuncia, enviarPendientes, cargarDemo, setDataset, getOperador, getPasivo, pasivosEvaluados, pasivosDe,
+    state, init, sincronizar, alCambiarSesion, guardarRegistro, estadosVisibles, estadosEnMapa, cargarDenunciasRed, puntosDenuncias, denunciasNuevas, iniciarAuto, actualizarAhora, enviarDenuncia, enviarPendientes, cargarDemo, setDataset, getOperador, getPasivo, pasivosEvaluados, pasivosDe,
     requisitosDe, avance, estaDesactualizado, addDenuncia, updateDenuncia, removeDenuncia,
     validar, completitud, fuenteGuardada, guardarFuente, cargarDesdeUrl
   };

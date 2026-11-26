@@ -51,13 +51,14 @@
     const S = G4G.store, ops = S.state.operadores, n = ops.length;
     const cs = ops.reduce((a, o) => { a[o.estado_legal] = (a[o.estado_legal] || 0) + 1; return a; }, {});
     const E = G4G.config.estados;
-    const nPrio = S.pasivosEvaluados().filter((p) => p.clase.nivel === 1).length;
+    const fun = G4G.auth.esFuncionario();
+    const nPrio = fun ? S.pasivosEvaluados().filter((p) => p.clase.nivel === 1).length : 0;
 
     root.appendChild(el('section', { class: 'hero' },
       el('div', { class: 'hero__text' },
         el('div', { class: 'hero__kicker' }, 'Registro público de la minería aurífera'),
         el('h2', { class: 'hero__title' }, '¿Esta operación minera está en regla?'),
-        el('p', { class: 'hero__lead' }, 'Consulta la situación legal de cooperativas y empresas mineras, mira dónde hay colas con riesgo de mercurio y reporta lo que ves en tu comunidad.'),
+        el('p', { class: 'hero__lead' }, 'Consulta la situación legal de cooperativas y empresas mineras, mira dónde operan en el mapa y reporta lo que ves en tu comunidad.'),
         buscador()),
       el('div', { class: 'hero__actions' },
         el('button', { type: 'button', class: 'action-card', onclick: () => G4G.app.go('mapa') },
@@ -79,12 +80,13 @@
       el('div', { class: 'stat-links' },
         tile('legal', 'operan con todos sus permisos'),
         tile('proceso', 'están regularizándose: les faltan requisitos'),
-        G4G.auth.esFuncionario() ? tile('no_legal', 'operan sin los permisos necesarios') : null,
+        fun ? tile('no_legal', 'operan sin los permisos necesarios') : null,
         tile('sin_dato', 'sin verificar: falta el dato oficial')),
-      el('button', { type: 'button', class: 'banner-link', onclick: () => G4G.app.go('pasivos') },
+      /* Los pasivos (colas y relaves) son solo para funcionarios. */
+      fun ? el('button', { type: 'button', class: 'banner-link', onclick: () => G4G.app.go('pasivos') },
         el('span', { class: 'banner-link__n' }, U.fmt(nPrio)),
         el('span', null, el('strong', null, 'pasivos mineros con prioridad alta. '), 'Colas y relaves cerca de ríos o poblaciones que conviene revisar primero.'),
-        el('span', { class: 'stat-link__go' }, 'Ver →'))));
+        el('span', { class: 'stat-link__go' }, 'Ver →')) : null));
 
     root.appendChild(el('section', { class: 'block' },
       el('div', { class: 'block__head' }, el('h3', null, 'Cómo funciona')),

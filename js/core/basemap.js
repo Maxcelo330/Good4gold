@@ -11,7 +11,10 @@
 
   function crear(map, opts = {}) {
     const capas = G4G.config.mapa.capasBase;
-    let idx = Number(localStorage.getItem(KEY) || 0);
+    /* opts.porDefecto: capa que se usa si la persona nunca eligió una (sin guardarla como preferencia). */
+    let guardado = null;
+    try { guardado = localStorage.getItem(KEY); } catch (e) { /* sin persistencia */ }
+    let idx = guardado !== null ? Number(guardado) : (opts.porDefecto || 0);
     if (!capas[idx]) idx = 0;
     let layer = null, rotulos = null, errores = 0, cargas = 0;
     const probados = new Set();

@@ -12,7 +12,7 @@
 
   const GRUPOS = { ciudadania: 'Ciudadanía', tecnico: 'Municipio', app: 'Aplicación' };
   const modulos = [];
-  let activo = null, host = null, titulo = null, subtitulo = null, chipOrigen = null, cuenta = null, pie = null, nav = null, pendiente = null, retorno = null;
+  let activo = null, host = null, titulo = null, subtitulo = null, chipOrigen = null, chipConn = null, cuenta = null, pie = null, nav = null, pendiente = null, retorno = null;
 
   function register(mod) {
     mod.grupo = mod.grupo || 'ciudadania';
@@ -72,6 +72,24 @@
     chipOrigen.title = meta.origen === 'demo' ? 'Datos de demostración inventados.' : 'Origen de los datos';
   }
 
+  /* Indicador de conexión con la base: en línea (hoja de Google) o modo demostración (solo este dispositivo). */
+  const TEXTOS_CONEXION = {
+    demo: ['Modo demostración · solo este dispositivo', 'Demostración', 'demo'],
+    cargando: ['Conectando con la base…', 'Conectando', 'busy'],
+    linea: ['En línea con la base', 'En línea', 'ok'],
+    'sin-red': ['Sin conexión con la base', 'Sin conexión', 'off']
+  };
+  function actualizarConexion() {
+    const c = G4G.store.state.conexion, t = TEXTOS_CONEXION[c.modo] || TEXTOS_CONEXION.demo;
+    chipConn.className = 'conn conn--' + t[2];
+    chipConn.replaceChildren(el('span', { class: 'conn__dot', 'aria-hidden': 'true' }), el('span', { class: 'conn__full' }, t[0]), el('span', { class: 'conn__short' }, t[1]));
+    const hora = c.ultima ? new Date(c.ultima).toLocaleTimeString('es-BO', { hour: '2-digit', minute: '2-digit', second: '2-digit' }) : '';
+    chipConn.title = c.modo === 'demo' ? 'No hay base en línea configurada: lo que se registra queda solo en este dispositivo y no aparece en otros.'
+      : c.modo === 'linea' ? 'Conectado a la hoja de Google del municipio. Última actualización: ' + hora
+      : c.modo === 'sin-red' ? 'No se pudo hablar con la base (' + (c.error || 'sin respuesta') + '). Se muestran los últimos datos guardados.' : 'Conectando con la hoja de Google del municipio…';
+    chipConn.setAttribute('role', 'status');
+  }
+
   /* Botón de cuenta (arriba a la derecha) y pie del menú lateral. */
   function actualizarCuenta() {
     const u = G4G.auth.usuario(), ui = G4G.ui;
@@ -107,6 +125,7 @@
     nav = el('nav', { class: 'nav', 'aria-label': 'Secciones' }, itemsNav());
     titulo = el('h1', null); subtitulo = el('p', { class: 'topbar__sub' });
     chipOrigen = el('span', { class: 'origin' });
+    chipConn = el('span', { class: 'conn' });
     cuenta = el('div', { class: 'account-slot' });
     pie = el('div', { class: 'side__foot' });
     host = el('main', { class: 'main', id: 'contenido' });
@@ -116,7 +135,7 @@
         nav, pie),
       el('div', { class: 'stage' },
         el('header', { class: 'topbar' }, el('div', { class: 'topbar__title' }, titulo, subtitulo),
-          el('div', { class: 'topbar__right' }, chipOrigen, cuenta,
+          el('div', { class: 'topbar__right' }, chipConn, chipOrigen, cuenta,
             el('a', { class: 'icon-btn', href: '#/configuracion', title: 'Configuración', 'aria-label': 'Configuración' }, G4G.ui.icon('ajustes', 20)))),
         host));
     G4G.ui.drawer.init(document.body);
@@ -125,6 +144,9 @@
       actualizarOrigen();
       modulos.forEach((m) => { if (!m.construido) return; if (m === activo) refrescar(m); else m.sucio = true; });
     });
+    G4G.bus.on('conexion:changed', actualizarConexion);
+    /* Una denuncia nueva o con otro estado: el mapa se redibuja solo; aquí solo las pantallas que lo piden (p. ej. Resumen). */
+    G4G.bus.on('denuncias:changed', () => modulos.forEach((m) => { if (m.reaccionaDenuncias && m.construido) { if (m === activo) refrescar(m); else m.sucio = true; } }));
     G4G.bus.on('auth:changed', () => {
       nav.replaceChildren(...itemsNav());
       actualizarCuenta();
@@ -135,12 +157,15 @@
       else if (activo) refrescar(activo);
     });
     window.addEventListener('hashchange', () => { const p = pendiente; pendiente = null; G4G.ui.drawer.close(); mostrar(rutaActual(), p); });
-    actualizarOrigen(); actualizarCuenta();
+    actualizarOrigen(); actualizarCuenta(); actualizarConexion();
     mostrar(rutaActual());
     /* Base en línea: se muestra lo último guardado y se actualiza en segundo plano. */
     G4G.store.sincronizar().then((r) => {
       if (r.estado === 'error') G4G.ui.toast('No se pudo actualizar desde la base en línea; se muestran los últimos datos guardados.', 'warn');
     });
+    /* Con base en línea: denuncias de todos los dispositivos, y se actualizan solas. */
+    G4G.store.cargarDenunciasRed().catch(() => {});
+    G4G.store.iniciarAuto();
     if (G4G.pwa) G4G.pwa.iniciar();
   }
 

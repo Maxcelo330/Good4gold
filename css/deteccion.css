@@ -1,0 +1,69 @@
+/* ==========================================================================
+   Sección "Detecciones revisadas" (solo funcionarios): mapa y lista de zonas.
+   Usa los colores y tipografías de base.css; botones de al menos 40 px.
+   ========================================================================== */
+
+.view--deteccion .btn, .view--deteccion .seg__btn { min-height: 40px; }
+.view--deteccion label.btn { cursor: pointer; }
+.zacciones { margin-top: 0; }
+.zinforme { margin-top: 10px !important; }
+
+.kpis--3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.kpis--3 .kpi { border-top: 0; }
+.kpis--3 .kpi__value { font-size: 34px; }
+.kpis--3 .kpi--fecha .kpi__value { font-size: 26px; padding-top: 5px; }
+
+.zvacio { text-align: center; padding: 26px 10px 22px; max-width: 620px; margin: 0 auto; }
+.zvacio__icono { width: 64px; height: 64px; margin: 0 auto 14px; display: grid; place-items: center; background: var(--gold-soft); color: var(--gold); border: 1px solid #E5D9B7; border-radius: 50%; }
+.zvacio h2 { margin-bottom: 10px; }
+
+.zcard .card__head { flex-wrap: wrap; }
+.zmap-wrap { position: relative; isolation: isolate; }   /* los controles de Leaflet quedan debajo del panel de la ficha */
+.zmap { height: 480px; background: #E9E4D8; border: 1px solid var(--line); }
+.zcard .card__body:has(.zmap-wrap) { padding: 0; }
+.zcard .card__body .zmap { border: 0; }
+
+.zorden { display: none; align-items: center; gap: 10px; padding: 12px 14px; border-bottom: 1px solid var(--line-2); }
+.zorden span { font: 700 12px var(--f-cond); letter-spacing: .07em; text-transform: uppercase; color: var(--ink-3); white-space: nowrap; }
+.zorden .input { min-height: 40px; }
+
+.ztbl tr.is-selected td { background: var(--gold-soft); }
+.ztbl tr.is-selected td:first-child { box-shadow: inset 3px 0 0 var(--gold); }
+.ztbl th.sortable:focus-visible, .ztbl tr.clickable:focus-visible { outline: 2px solid var(--blue); outline-offset: -2px; }
+.ztbl td { min-height: 44px; }
+
+.zficha__nota { white-space: pre-wrap; background: #fff; border: 1px solid var(--line); padding: 10px 12px; }
+.zficha .dl { grid-template-columns: 138px 1fr; }
+
+@media (max-width: 700px) {
+  .zmap { height: 350px; }
+  .kpis--3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .kpis--3 .kpi { padding: 12px 10px; }
+  .kpis--3 .kpi__label { font-size: 11px; letter-spacing: .04em; }
+  .kpis--3 .kpi__value { font-size: 26px; }
+  .kpis--3 .kpi--fecha .kpi__value { font-size: 17px; padding-top: 6px; }
+  .kpis--3 .kpi__sub { font-size: 11.5px; }
+  .zacciones .btn { flex: 1 1 calc(50% - 5px); justify-content: center; }
+  .zacciones .btn--primary, .zacciones .btn--danger { flex-basis: 100%; }
+  body[data-vista="deteccion"] .topbar h1 { font-size: 16px; line-height: 1.15; white-space: normal; }
+  body[data-vista="deteccion"] .topbar__title { min-width: 0; }
+  .zacciones .btn { padding: 8px 8px; gap: 6px; font-size: 13px; white-space: nowrap; }
+  .zcard .card__actions { width: 100%; }
+  .zcard .card__actions .seg { flex: 1; }
+  .zcard .card__actions .seg__btn { flex: 1; }
+  .zorden { display: flex; }
+  .zorden .input { flex: 1; }
+  /* cada zona es una tarjeta compacta de dos columnas */
+  .ztbl tr { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 12px; padding: 12px 14px; }
+  .ztbl td { padding: 0; min-width: 0; min-height: 0; }
+  .ztbl td::before { font-size: 10.5px; }
+  .ztbl td.zc-id { order: 1; font-size: 16px; align-self: end; } .ztbl td.zc-id::before { display: none; }
+  .ztbl td.zc-puntaje { order: 2; }
+  .ztbl td.zc-area { order: 3; } .ztbl td.zc-rio { order: 4; } .ztbl td.zc-poblado { order: 5; } .ztbl td.zc-origen { order: 6; }
+  .ztbl td.zc-fecha { order: 7; grid-column: 1 / -1; }
+  .ztbl td.num { text-align: left !important; }
+  .ztbl tr.is-selected { background: var(--gold-soft); box-shadow: inset 4px 0 0 var(--gold); }
+  .ztbl tr.is-selected td, .ztbl tr.is-selected td:first-child { background: none; box-shadow: none; }
+  .zficha .dl { grid-template-columns: 1fr; gap: 2px; }
+  .zficha .dl dd { margin-bottom: 8px; }
+}

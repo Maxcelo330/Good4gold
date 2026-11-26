@@ -38,16 +38,19 @@
         el('span', { class: 'rank__scores' }, ui().meter(p.riesgo, 100, { tone: 'risk' }), el('span', { class: 'rank__pts' }, p.riesgo)),
         ui().claseChip(p.clase)))));
     const verMas = ui().button('Ver todos los pasivos', { onclick: () => G4G.app.go('pasivos') });
+    const nZonas = G4G.deteccion ? G4G.deteccion.cantidad() : 0;
+    const verZonas = G4G.deteccion ? ui().button('Detecciones revisadas' + (nZonas ? ` (${nZonas})` : ''), { onclick: () => G4G.app.go('deteccion') }) : null;
 
     const issues = S.validar();
-    const nuevas = st.denuncias.filter((d) => d.estado === 'nueva').length;
+    const nuevas = S.denunciasNuevas();
     const atencion = [];
-    if (nuevas) atencion.push(['denuncias', `${nuevas} denuncia${nuevas > 1 ? 's' : ''} nueva${nuevas > 1 ? 's' : ''} sin revisar`, 'denuncias']);
+    if (nuevas) atencion.push(['denuncias', `${nuevas} denuncia${nuevas > 1 ? 's' : ''} nueva${nuevas > 1 ? 's' : ''} sin revisar`, 'buzon']);
+    if (nZonas) atencion.push(['info', `${nZonas} zona${nZonas > 1 ? 's' : ''} revisada${nZonas > 1 ? 's' : ''} como posible actividad minera, por verificar en campo`, 'deteccion']);
     issues.filter((i) => i.sev !== 'info').forEach((i) => atencion.push([i.sev, `${i.ids.length} · ${i.titulo}`, 'datos']));
     issues.filter((i) => i.codigo === 'sin-ley').forEach((i) => atencion.push(['info', `${i.ids.length} · ${i.titulo}`, 'pasivos']));
 
     root.appendChild(el('div', { class: 'grid grid--2' },
-      ui().card('Pasivos a priorizar', top.length ? [lista, verMas] : ui().empty('Todavía no hay pasivos cargados. Cárguelos en la sección Datos.')),
+      ui().card('Pasivos a priorizar', top.length ? [lista, el('div', { class: 'row-gap' }, verMas, verZonas)] : ui().empty('Todavía no hay pasivos cargados. Cárguelos en la sección Datos.')),
       ui().card('Para verificar', atencion.length
         ? el('ul', { class: 'attn' }, atencion.map(([sev, txt, destino]) => el('li', { class: 'attn--' + sev },
           el('span', { class: 'attn__dot', 'aria-hidden': 'true' }), el('span', { class: 'attn__txt' }, txt),
@@ -61,5 +64,5 @@
       el('p', { class: 'muted' }, 'Los vacíos de datos son parte del diagnóstico: el método los muestra en lugar de ocultarlos.'))));
   }
 
-  G4G.app.register({ id: 'resumen', titulo: 'Resumen', icono: 'resumen', orden: 10, grupo: 'tecnico', subtitulo: 'Estado de la base de datos y prioridades', render });
+  G4G.app.register({ id: 'resumen', reaccionaDenuncias: true, titulo: 'Resumen', icono: 'resumen', orden: 10, grupo: 'tecnico', subtitulo: 'Estado de la base de datos y prioridades', render });
 })();

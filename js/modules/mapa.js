@@ -3,7 +3,11 @@
      un botón para denunciar en ese mismo punto;
    - busca una operación y el mapa vuela hasta ella;
    - "Mi ubicación" centra el mapa donde estás;
-   - cambia entre mapa, satélite (útil para ver diques de colas) y relieve. */
+   - cambia entre mapa, satélite y relieve.
+   Qué se dibuja según el perfil:
+   - Público: verde (legal), amarillo (en proceso) y azul (denuncias de todos los dispositivos).
+   - Funcionario: además "sin verificar" (gris), "no legal" (rojo), denuncias para verificar (rojo) y pasivos.
+   Las denuncias se actualizan solas (al abrir, cada 60 s con la pestaña visible) y con el botón Actualizar. */
 (function () {
   const G4G = (window.G4G = window.G4G || {});
   const U = G4G.util, { el } = U;
@@ -13,7 +17,9 @@
   const grupos = { operadores: null, pasivos: null, denuncias: null };
   const agua = { principales: null, detalle: null, estado: null };
   let aguaPendiente = false;
-  const vista = { visible: { legal: true, proceso: true, no_legal: true, sin_dato: true, pasivos: true, denuncias: true, rios: true, detalle: true }, depto: '' };
+  const vista = { visible: { legal: true, proceso: true, no_legal: true, sin_dato: true, pasivos: true, denuncias: true, denunciasRojas: true, rios: true, detalle: true }, depto: '' };
+  let actualizando = false, cuentaDen = null, cuentaDenRojas = null;
+  const esFun = () => G4G.auth.esFuncionario();
 
   /* ---- Ríos, quebradas y canales ---- */
   const ESTILO = {
@@ -80,6 +86,7 @@
     else if (forma === 'triangulo') f = `<path d="M${c} 2.5 L${s - 2.5} ${s - 3.5} L2.5 ${s - 3.5} Z" fill="${color}" stroke="#fff" stroke-width="2" stroke-linejoin="round"/>`;
     else if (forma === 'cuadrado') f = `<rect x="3.5" y="3.5" width="${s - 7}" height="${s - 7}" fill="${color}" stroke="#fff" stroke-width="2"/>`;
     else if (forma === 'anillo') f = `<circle cx="${c}" cy="${c}" r="${c - 4}" fill="#fff" stroke="${color}" stroke-width="3"/>`;
+    else if (forma === 'hexagono') f = `<polygon points="${ui().puntosHexagono(c, c, c - 1.5)}" fill="${color}" stroke="#fff" stroke-width="2" stroke-linejoin="round"/>`;
     else if (forma === 'rombo') f = `<path d="M${c} 1.5 L${s - 1.5} ${c} L${c} ${s - 1.5} L1.5 ${c} Z" fill="${color}" stroke="#fff" stroke-width="2" stroke-linejoin="round"/>`;
     else if (forma === 'yo') f = `<circle cx="${c}" cy="${c}" r="${c - 2}" fill="#1F4E9C" fill-opacity=".18"/><circle cx="${c}" cy="${c}" r="6" fill="#1F4E9C" stroke="#fff" stroke-width="2.5"/>`;
     else f = `<circle cx="${c}" cy="${c}" r="${c - 2}" fill="${color}" stroke="#fff" stroke-width="2"/><text x="${c}" y="${c + 4.5}" text-anchor="middle" font-size="13" font-weight="700" fill="#fff" font-family="Roboto,Arial">!</text>`;
@@ -91,30 +98,74 @@
   function dibujar() {
     if (!map) return;
     Object.values(grupos).forEach((g) => g.clearLayers());
-    const S = G4G.store, est = G4G.config.estados;
+    const S = G4G.store, est = G4G.config.estados, enMapa = new Set(S.estadosEnMapa().map(([k]) => k));
     S.state.operadores.forEach((o) => {
-      if (o.lat == null || !vista.visible[o.estado_legal] || !pasaDepto(o)) return;
+      if (o.lat == null || !enMapa.has(o.estado_legal) || !vista.visible[o.estado_legal] || !pasaDepto(o)) return;
       const e = est[o.estado_legal];
       L.marker([o.lat, o.lng], { icon: svgIcono(e.forma, e.color, 20), title: o.nombre, keyboard: true, riseOnHover: true })
         .bindTooltip(`<strong>${U.esc(o.nombre)}</strong><br>${e.label}`, { direction: 'top', offset: [0, -8] })
         .on('click', () => G4G.detalle.operador(o.id)).addTo(grupos.operadores);
     });
-    if (vista.visible.pasivos) {
+    if (esFun() && vista.visible.pasivos) {
       S.pasivosEvaluados().forEach((p) => {
         if (p.lat == null || (vista.depto && p._op && p._op.departamento !== vista.depto)) return;
         const s = 14 + Math.round((p.riesgo / 100) * 12);
-        L.marker([p.lat, p.lng], { icon: svgIcono('rombo', p.clase.nivel === 1 ? '#C8202F' : '#2B2824', s), title: p.nombre, keyboard: true, zIndexOffset: 200 })
+        L.marker([p.lat, p.lng], { icon: svgIcono('hexagono', G4G.config.pasivoColor[p.clase.nivel] || G4G.config.pasivoColor[4], s), title: p.nombre, keyboard: true, zIndexOffset: 200 })
           .bindTooltip(`<strong>${U.esc(p.nombre || p.id)}</strong><br>Riesgo ${p.riesgo} · ${p.clase.corto}`, { direction: 'top', offset: [0, -8] })
           .on('click', () => G4G.detalle.pasivo(p.id)).addTo(grupos.pasivos);
       });
     }
-    if (vista.visible.denuncias) {
-      S.state.denuncias.forEach((d) => {
-        L.marker([d.lat, d.lng], { icon: svgIcono('alerta', '#1F4E9C', 24), title: d.tipo, zIndexOffset: 400 })
-          .bindTooltip(`<strong>Denuncia</strong><br>${U.esc(d.tipo)}`, { direction: 'top', offset: [0, -10] })
-          .on('click', () => G4G.detalle.denuncia(d.id)).addTo(grupos.denuncias);
-      });
-    }
+    dibujarDenuncias();
+  }
+
+  /* Denuncias: azul para todos; rojo (solo funcionarios) = para verificar. */
+  function abrirDenuncia(p) {
+    const S = G4G.store;
+    if (p.local) { G4G.detalle.denuncia(p.ref.id); return; }
+    if (esFun() && p.ref.completa && G4G.buzon) { G4G.buzon.abrir(p.ref); return; }
+    const propia = S.state.denuncias.find((x) => x.codigo === p.codigo);
+    if (propia) { G4G.detalle.denuncia(propia.id); return; }
+    G4G.detalle.denunciaRed(p);
+  }
+  function dibujarDenuncias() {
+    if (!map || !grupos.denuncias) return;
+    grupos.denuncias.clearLayers();
+    let azules = 0, rojas = 0;
+    G4G.store.puntosDenuncias().forEach((p) => {
+      if (p.rojo) rojas++; else azules++;
+      if (p.rojo ? !vista.visible.denunciasRojas : !vista.visible.denuncias) return;
+      const estadoTxt = p.pendiente ? 'Sin enviar: se enviará al volver la señal'
+        : ((G4G.config.estadosDenuncia[p.estado] && esFun()) ? G4G.config.estadosDenuncia[p.estado] : (G4G.config.estadosDenunciaPublico[p.estado] || G4G.config.estadosDenuncia[p.estado] || { label: '' })).label;
+      L.marker([p.lat, p.lng], { icon: svgIcono('alerta', p.rojo ? '#B3261E' : '#1F4E9C', 24), title: p.tipo, zIndexOffset: p.rojo ? 450 : 400, opacity: p.pendiente ? 0.7 : 1, keyboard: true })
+        .bindTooltip(`<strong>${p.rojo ? 'Denuncia para verificar' : 'Denuncia'}</strong><br>${U.esc(p.tipo)}${estadoTxt ? '<br>' + U.esc(estadoTxt) : ''}`, { direction: 'top', offset: [0, -10] })
+        .on('click', () => abrirDenuncia(p)).addTo(grupos.denuncias);
+    });
+    if (cuentaDen) cuentaDen.textContent = azules;
+    if (cuentaDenRojas) cuentaDenRojas.textContent = rojas;
+  }
+
+  /* Estado de la conexión y botón Actualizar (esquina inferior izquierda). */
+  function pintarSync() {
+    if (!refs || !refs.sync) return;
+    const c = G4G.store.state.conexion;
+    const hora = c.ultima ? new Date(c.ultima).toLocaleTimeString('es-BO', { hour: '2-digit', minute: '2-digit' }) : '';
+    /* [texto completo, texto corto para celular] */
+    const [txt, corto] = c.modo === 'demo' ? ['Modo demostración · solo este dispositivo', 'Demostración · este dispositivo']
+      : c.modo === 'linea' ? ['En línea con la base · ' + hora, 'En línea · ' + hora]
+      : c.modo === 'sin-red' ? ['Sin conexión con la base' + (hora ? ' · datos de ' + hora : ''), 'Sin conexión' + (hora ? ' · ' + hora : '')] : ['Conectando con la base…', 'Conectando…'];
+    U.clear(refs.sync);
+    refs.sync.className = 'map-sync map-sync--' + c.modo;
+    refs.sync.title = c.modo === 'demo' ? 'No hay base en línea: las denuncias de este mapa son solo las hechas en este dispositivo.' : 'Las denuncias se actualizan solas cada minuto.';
+    refs.sync.append(el('span', { class: 'map-sync__dot', 'aria-hidden': 'true' }), el('span', { class: 'map-sync__txt map-sync__full' }, txt), el('span', { class: 'map-sync__txt map-sync__short' }, corto));
+    if (c.modo !== 'demo') refs.sync.append(el('button', { type: 'button', class: 'map-sync__btn', 'aria-label': 'Actualizar', title: 'Actualizar ahora', disabled: actualizando, onclick: actualizar }, ui().icon('actualizar', 14), el('span', { class: 'map-sync__lbl' }, actualizando ? 'Actualizando…' : 'Actualizar')));
+  }
+  async function actualizar() {
+    actualizando = true; pintarSync();
+    try {
+      const r = await G4G.store.actualizarAhora();
+      if (r.estado === 'error') ui().toast('No se pudo actualizar: ' + r.mensaje, 'warn');
+      else if (r.estado === 'ok') ui().toast('Mapa actualizado.');
+    } finally { actualizando = false; pintarSync(); }
   }
 
   function encuadrar() {
@@ -139,7 +190,7 @@
             ui().shapeSvg(G4G.config.estados[c.reg.estado_legal].forma, G4G.config.estados[c.reg.estado_legal].color, 12),
             el('span', { class: 'here__name' }, c.reg.nombre), el('span', { class: 'here__d' }, `${U.fmt(c.d, 1)} km`)))))
         : el('p', { class: 'here__none' }, `No hay operaciones registradas a menos de ${R} km.`),
-      pas.length ? el('p', { class: 'here__note' }, `${pas.length} pasivo${pas.length > 1 ? 's' : ''} minero${pas.length > 1 ? 's' : ''} en la zona.`) : null,
+      esFun() && pas.length ? el('p', { class: 'here__note' }, `${pas.length} pasivo${pas.length > 1 ? 's' : ''} minero${pas.length > 1 ? 's' : ''} en la zona.`) : null,
       aguaCerca(latlng),
       el('button', { type: 'button', class: 'btn btn--primary btn--block', onclick: () => { map.closePopup(); G4G.app.go('denuncias', { ubicacion: { lat: latlng.lat, lng: latlng.lng, origen: 'mapa' } }); } },
         ui().icon('denuncias', 16), 'Denunciar en este punto'));
@@ -191,6 +242,13 @@
       type: 'button', class: 'layer-chip' + (vista.visible[key] ? ' is-on' : ''), 'aria-pressed': String(vista.visible[key]),
       onclick: (e) => { vista.visible[key] = !vista.visible[key]; e.currentTarget.classList.toggle('is-on'); e.currentTarget.setAttribute('aria-pressed', String(vista.visible[key])); dibujar(); }
     }, shape, el('span', { class: 'layer-chip__name' }, label), el('span', { class: 'layer-chip__n' }, n));
+    /* Chip de denuncias: el número lo mantiene dibujarDenuncias() sin rehacer el panel. */
+    const chipDenuncia = (key, color, label, guardarNodo) => {
+      const n = el('span', { class: 'layer-chip__n' }, '0'); guardarNodo(n);
+      return el('button', { type: 'button', class: 'layer-chip' + (vista.visible[key] ? ' is-on' : ''), 'aria-pressed': String(vista.visible[key]),
+        onclick: (e) => { vista.visible[key] = !vista.visible[key]; e.currentTarget.classList.toggle('is-on'); e.currentTarget.setAttribute('aria-pressed', String(vista.visible[key])); dibujarDenuncias(); } },
+      ui().shapeSvg('circulo', color, 13), el('span', { class: 'layer-chip__name' }, label), n);
+    };
     const deptos = [...new Set(S.state.operadores.map((o) => o.departamento).filter(Boolean))].sort();
     const sel = el('select', { class: 'input', 'aria-label': 'Departamento', onchange: (e) => { vista.depto = e.target.value; dibujar(); encuadrar(); } },
       el('option', { value: '' }, 'Todo el país'), deptos.map((d) => el('option', { value: d, selected: vista.depto === d }, d)));
@@ -203,9 +261,10 @@
       G4G.inicio.buscador({ compacto: true, placeholder: 'Buscar operación o municipio…', onElegir: volarA }),
       el('div', { class: 'mappanel__title' }, 'Mostrar'),
       el('div', { class: 'layer-chips' },
-        S.estadosVisibles().map(([k, e]) => chip(k, ui().shapeSvg(e.forma, e.color, 13), e.label, cs[k] || 0)),
-        chip('pasivos', ui().shapeSvg('cuadrado', '#2B2824', 13), 'Pasivos (colas)', S.state.pasivos.length),
-        chip('denuncias', ui().shapeSvg('circulo', '#1F4E9C', 13), 'Denuncias', S.state.denuncias.length)),
+        S.estadosEnMapa().map(([k, e]) => chip(k, ui().shapeSvg(e.forma, e.color, 13), e.label, cs[k] || 0)),
+        esFun() ? chip('pasivos', ui().shapeSvg('hexagono', G4G.config.pasivoColor[2], 14), 'Pasivos (colas y relaves)', S.state.pasivos.length) : null,
+        chipDenuncia('denuncias', '#1F4E9C', 'Denuncias', (n) => { cuentaDen = n; }),
+        esFun() ? chipDenuncia('denunciasRojas', '#B3261E', 'Denuncias para verificar', (n) => { cuentaDenRojas = n; }) : null),
       el('div', { class: 'mappanel__title' }, 'Agua'),
       el('div', { class: 'layer-chips' },
         chipAgua('rios', 'river', 'Ríos principales', dibujarPrincipales),
@@ -214,7 +273,8 @@
         el('span', null, linea('#1E88E5', 3), 'Río'), el('span', null, linea('#4FA3E0', 1.6), 'Quebrada'), el('span', null, linea('#00897B', 2.2, true), 'Canal')),
       el('div', { class: 'mappanel__title' }, 'Zona'), sel,
       el('div', { class: 'mappanel__title' }, 'Vista'), segBase,
-      el('p', { class: 'mappanel__hint' }, el('strong', null, 'Toca el mapa'), ' para ver qué hay en un punto o denunciar ahí. Pasivos en rojo: prioridad alta.'));
+      el('p', { class: 'mappanel__hint' }, el('strong', null, 'Toca el mapa'), ' para ver qué hay en un punto o denunciar ahí.',
+        esFun() ? ' Rojo: operación no legal o denuncia para verificar (en revisión o sobre una operación no legal). Hexágonos violeta: pasivos (colas y relaves); más oscuro = más prioridad.' : ' Azul: denuncias de la ciudadanía.'));
     return el('div', { class: 'mappanel' + (window.innerWidth < 860 ? ' is-collapsed' : '') },
       el('button', { type: 'button', class: 'mappanel__toggle', 'aria-expanded': String(window.innerWidth >= 860), onclick: (e) => { const p = e.currentTarget.parentNode; p.classList.toggle('is-collapsed'); e.currentTarget.setAttribute('aria-expanded', String(!p.classList.contains('is-collapsed'))); } },
         ui().icon('buscar', 16), 'Buscar y filtrar', el('span', { class: 'mappanel__caret', 'aria-hidden': 'true' }, '▾')), body);
@@ -226,9 +286,9 @@
     const badge = el('div', { class: 'mapbadge', hidden: true }, 'Sin conexión: el mapa base no está disponible. Los puntos se muestran igual.');
     const locBtn = el('button', { type: 'button', class: 'map-fab', title: 'Mi ubicación', 'aria-label': 'Centrar en mi ubicación', onclick: (e) => miUbicacion(e.currentTarget) }, ui().icon('gps', 20));
     const repBtn = el('button', { type: 'button', class: 'map-fab map-fab--wide', onclick: () => G4G.app.go('denuncias') }, ui().icon('denuncias', 18), 'Denunciar');
-    refs = { panelHost: el('div', { class: 'mapview__panel' }) };
+    refs = { panelHost: el('div', { class: 'mapview__panel' }), sync: el('div', { class: 'map-sync', role: 'status' }) };
     agua.estado = el('div', { class: 'water-status', hidden: true, role: 'status' });
-    host.append(mapDiv, refs.panelHost, el('div', { class: 'map-fabs' }, locBtn, repBtn), badge, agua.estado);
+    host.append(mapDiv, refs.panelHost, el('div', { class: 'map-fabs' }, locBtn, repBtn), refs.sync, badge, agua.estado);
     root.appendChild(host);
 
     const c = G4G.config.mapa;
@@ -247,6 +307,7 @@
     dibujarDetalle();
     refs.panelHost.appendChild(panel());
     dibujar();
+    pintarSync();
     encuadrar();
   }
 
@@ -254,7 +315,12 @@
     if (!map) return;
     U.clear(refs.panelHost); refs.panelHost.appendChild(panel());
     dibujar();
+    pintarSync();
   }
+
+  /* Llegaron denuncias nuevas (de cualquier dispositivo) o cambió la conexión: solo se redibuja lo necesario. */
+  G4G.bus.on('denuncias:changed', () => dibujarDenuncias());
+  G4G.bus.on('conexion:changed', () => pintarSync());
 
   function onShow(root, params) {
     setTimeout(() => { if (map) map.invalidateSize(); }, 60);

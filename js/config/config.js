@@ -9,7 +9,7 @@
 
   G4G.config = {
     nombre: 'Registro y Control Minero',
-    version: '0.4.0',
+    version: '0.5.0',
 
     /* Caja aproximada de Bolivia: se usa para detectar coordenadas erróneas. */
     limites: { latMin: -23.0, latMax: -9.5, lngMin: -69.8, lngMax: -57.4 },
@@ -41,15 +41,33 @@
        Pegue aquí la URL que termina en /exec. Con backend:
        - el público recibe la base SIN los operadores "No legal" ni sus pasivos (se filtran en el servidor);
        - los funcionarios ingresan con usuario y clave y ven todo, registran datos y atienden denuncias;
-       - las denuncias llegan a la hoja "Denuncias".
+       - las denuncias llegan a la hoja "Denuncias" y se ven en TODOS los dispositivos
+         (puntos azules en el mapa público; los funcionarios ven además los rojos);
+       - el público NUNCA recibe pasivos (colas/relaves) ni operadores "No legal".
        Si está vacío, la app funciona en MODO DEMOSTRACIÓN (sin confidencialidad real). */
     backend: { url: '' },
 
-    /* Acceso de funcionarios. La cuenta de demostración SOLO funciona cuando no hay backend. */
+    /* Detecciones revisadas (sección del municipio): zonas que una persona marcó como
+       "Parece actividad minera" en el visor de imágenes satelitales. Son datos confidenciales:
+       NO se incluyen en este repositorio; se cargan desde un archivo GeoJSON en la sección
+       (quedan solo en el dispositivo). Opcional: si "url" tiene una dirección pública de un
+       GeoJSON, la sección intenta descargarlo ahí (ver README). Por defecto vacía. */
+    deteccion: { url: '' },
+
+    /* Acceso de funcionarios. La cuenta de demostración SOLO funciona cuando no hay backend
+       (con backend, el usuario y la clave están en la hoja "Usuarios", con la clave cifrada). */
     acceso: {
       ocultarAlPublico: ['no_legal'],
-      demo: { usuario: 'municipio', clave: 'demo2026' }
+      /* Situaciones legales que el público ve en el mapa (verde y amarillo). "Sin verificar" y
+         "No legal" solo los ve un funcionario en el mapa. Consultar y la búsqueda siguen mostrando "Sin verificar". */
+      mapaPublico: ['legal', 'proceso'],
+      demo: { usuario: 'Aurum80', clave: 'Aurum80' }
     },
+
+    /* Denuncias en el mapa. Azul = denuncia recibida (la ve todo el mundo, sin datos personales).
+       Rojo (SOLO funcionarios) = denuncia para verificar: estado "En revisión" o ubicada a menos de
+       radioNoLegalKm de una operación "No legal". Se actualizan solas cada refrescoSeg segundos. */
+    mapaDenuncias: { refrescoSeg: 60, radioNoLegalKm: 2, estadosRojos: ['en_revision'] },
 
     /* Situación legal del operador. La forma se usa además del color
        para que el mapa se lea sin depender del color. */
@@ -70,6 +88,11 @@
       { id: 'plan_colas',          label: 'Plan de manejo de colas' },
       { id: 'responsable_tecnico', label: 'Responsable técnico designado' }
     ],
+
+    /* Pasivos (colas, relaves, desmontes; SOLO funcionarios): familia VIOLETA y forma de HEXÁGONO, distinta de
+       verde (legal), amarillo (en proceso), azul (denuncias) y rojo (no legal / denuncia para verificar).
+       Escala por clasificación, de más oscuro (más prioridad) a más claro. Mismos valores en css/base.css (--pasivo-1..4). */
+    pasivoColor: { 1: '#3E1670', 2: '#6B3FA0', 3: '#8E6BBF', 4: '#A98FD0' },
 
     tiposOperador: ['Cooperativa', 'Empresa', 'Asociación', 'Planta de beneficio'],
     tiposPasivo: ['Dique de colas', 'Relave', 'Desmonte', 'Acumulación'],
@@ -112,6 +135,11 @@
       en_revision: { label: 'En revisión' },
       atendida:    { label: 'Atendida' },
       descartada:  { label: 'Descartada' }
+    },
+    /* Estado de una denuncia tal como lo ve el público (resumido: no revela el trabajo interno). */
+    estadosDenunciaPublico: {
+      abierta:  { label: 'Recibida' },
+      atendida: { label: 'Atendida' }
     },
     radioCercaniaKm: 5,
 

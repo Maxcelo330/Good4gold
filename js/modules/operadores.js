@@ -43,9 +43,10 @@
       { key: 'estado_legal', label: 'Situación legal', render: (o) => ui().estadoChip(o.estado_legal), sortValue: (o) => ORDEN_ATENCION[o.estado_legal] },
       { key: 'depto', label: 'Ubicación', render: (o) => el('div', null, el('div', null, o.municipio || '—'), el('div', { class: 'cell-sub' }, o.departamento || '—')), sortValue: (o) => (o.departamento || '') + (o.municipio || '') },
       { key: 'req', label: 'Requisitos', sortValue: (o) => S.avance(o).cumplidos, render: (o) => { const a = S.avance(o); return el('div', { class: 'progress progress--sm' }, ui().meter(a.cumplidos, a.total), el('span', null, `${a.cumplidos}/${a.total}`)); } },
-      { key: 'pas', label: 'Pasivos', align: 'right', sortValue: (o) => S.pasivosDe(o.id).length, render: (o) => S.pasivosDe(o.id).length || '—' },
+      /* La columna de pasivos solo existe para funcionarios. */
+      G4G.auth.esFuncionario() ? { key: 'pas', label: 'Pasivos', align: 'right', sortValue: (o) => S.pasivosDe(o.id).length, render: (o) => S.pasivosDe(o.id).length || '—' } : null,
       { key: 'act', label: 'Actualizado', sortValue: (o) => o.actualizado || '', render: (o) => G4G.detalle.frescura(o) }
-    ];
+    ].filter(Boolean);
     let tabla = null;
     function pintar() {
       const filas = filtrar().sort((a, b) => ORDEN_ATENCION[a.estado_legal] - ORDEN_ATENCION[b.estado_legal] || a.nombre.localeCompare(b.nombre, 'es'));

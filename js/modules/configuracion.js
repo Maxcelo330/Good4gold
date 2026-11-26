@@ -49,7 +49,7 @@
       type: 'button', class: 'seg__btn' + (actual === i ? ' is-on' : ''), 'aria-pressed': String(actual === i),
       onclick: () => { try { localStorage.setItem('g4g.mapabase', String(i)); } catch (e) { /* nada */ } ui().toast(`Mapa base: ${c.nombre}. Se aplica al abrir el mapa.`); pintar(); }
     }, c.nombre)));
-    return ui().card('Mapa', el('div', null, ui().field('Mapa base al abrir', seg, 'Satélite ayuda a reconocer diques y piscinas de colas.')));
+    return ui().card('Mapa', el('div', null, ui().field('Mapa base al abrir', seg, 'Satélite ayuda a reconocer el terreno y los cursos de agua.')));
   }
 
   function tarjetaCuenta() {
