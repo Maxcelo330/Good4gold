@@ -56,10 +56,11 @@
   /* ---------- Pasos ---------- */
   function paso1(pie) {
     const siguiente = ui().button('Siguiente', { kind: 'primary', disabled: !b.tipo, onclick: () => { b.paso = 2; pintar(); } });
-    pie.append(el('span'), siguiente);
+    pie.append(el('span', { class: 'wizard__hint', role: 'status' }, b.tipo ? '' : 'Elige una opción para continuar.'), siguiente);
     return el('div', null,
       b.origen === 'mapa' ? el('div', { class: 'note note--lock' }, ui().icon('gps', 15), el('span', null, `Ubicación ya marcada desde el mapa (${U.fmtCoord(b.lat, b.lng)}). Podrás ajustarla en el paso 2.`)) : null,
-      el('p', { class: 'step-q' }, '¿Qué observaste?'),
+      el('div', { class: 'il-paso' }, el('p', { class: 'step-q' }, '¿Qué observaste?'),
+        el('img', { class: 'il il-paso__img', src: 'img/denuncia.svg', alt: '', width: 104, height: 78, decoding: 'async' })),
       el('div', { class: 'options', role: 'radiogroup', 'aria-label': 'Tipo de denuncia' }, G4G.config.tiposDenuncia.map((t) => el('button', {
         type: 'button', role: 'radio', 'aria-checked': String(b.tipo === t), class: 'option' + (b.tipo === t ? ' is-on' : ''),
         onclick: () => { b.tipo = t; pintar(); }
@@ -69,11 +70,12 @@
 
   function paso2(pie) {
     const siguiente = ui().button('Siguiente', { kind: 'primary', disabled: b.lat === null, onclick: () => { b.paso = 3; pintar(); } });
-    pie.append(ui().button('Atrás', { onclick: () => { b.paso = 1; pintar(); } }), siguiente);
-    const estado = el('div', { class: 'geo-status' + (b.lat !== null ? ' is-ok' : ''), role: 'status' }, b.lat !== null ? `Ubicación marcada: ${U.fmtCoord(b.lat, b.lng)}` + (b.precision ? ` · precisión ± ${U.fmt(b.precision)} m` : '') : 'Todavía no marcaste la ubicación.');
+    const hint2 = el('span', { class: 'wizard__hint', role: 'status' }, b.lat === null ? 'Marca el lugar para continuar.' : '');
+    pie.append(ui().button('Atrás', { onclick: () => { b.paso = 1; pintar(); } }), hint2, siguiente);
+    const estado = el('div', { class: 'geo-status' + (b.lat !== null ? ' is-ok' : ''), role: 'status' }, b.lat !== null ? `Ubicación marcada: ${U.fmtCoord(b.lat, b.lng)}` + (b.precision ? ` · precisión ± ${U.fmt(b.precision)} m` : '') : 'Todavía no marcaste el lugar.');
     const cerca = el('div', null, b.lat !== null ? cercaniaNodo(b.lat, b.lng) : null);
-    const latIn = el('input', { class: 'input mono', type: 'text', inputmode: 'decimal', placeholder: 'Latitud  -15.55000', 'aria-label': 'Latitud', value: b.lat !== null ? b.lat.toFixed(5) : '' });
-    const lngIn = el('input', { class: 'input mono', type: 'text', inputmode: 'decimal', placeholder: 'Longitud  -67.75000', 'aria-label': 'Longitud', value: b.lng !== null ? b.lng.toFixed(5) : '' });
+    const latIn = el('input', { class: 'input mono', type: 'text', inputmode: 'text', placeholder: 'Latitud', 'aria-label': 'Latitud', value: b.lat !== null ? b.lat.toFixed(5) : '' });
+    const lngIn = el('input', { class: 'input mono', type: 'text', inputmode: 'text', placeholder: 'Longitud', 'aria-label': 'Longitud', value: b.lng !== null ? b.lng.toFixed(5) : '' });
 
     function fijar(lat, lng, precision, mover = true) {
       b.lat = lat; b.lng = lng; b.precision = precision || null;
@@ -81,7 +83,7 @@
       estado.className = 'geo-status is-ok';
       estado.textContent = `Ubicación marcada: ${U.fmtCoord(lat, lng)}` + (precision ? ` · precisión ± ${U.fmt(precision)} m` : '');
       U.clear(cerca); cerca.appendChild(cercaniaNodo(lat, lng));
-      siguiente.disabled = false;
+      siguiente.disabled = false; hint2.textContent = '';
       if (mini) {
         if (!marcador) marcador = L.marker([lat, lng], { draggable: true, icon: L.divIcon({ className: 'mk', html: '<svg width="26" height="26" viewBox="0 0 26 26"><circle cx="13" cy="13" r="11" fill="#1F4E9C" stroke="#fff" stroke-width="2.5"/><text x="13" y="18" text-anchor="middle" font-size="14" font-weight="700" fill="#fff" font-family="Roboto,Arial">!</text></svg>', iconSize: [26, 26], iconAnchor: [13, 13] }) })
           .addTo(mini).on('dragend', (e) => { const p = e.target.getLatLng(); fijar(p.lat, p.lng, null, false); });
@@ -109,7 +111,7 @@
     const nodo = el('div', null,
       el('p', { class: 'step-q' }, '¿Dónde ocurre?'),
       el('div', { class: 'row-gap' }, el('button', { type: 'button', class: 'btn btn--big', onclick: (e) => gps(e.currentTarget) }, ui().icon('gps', 18), 'Usar mi ubicación actual'), el('span', { class: 'muted small' }, 'o toca el mapa / arrastra el marcador')),
-      mapaDiv, el('div', { class: 'coords' }, latIn, lngIn), estado, cerca);
+      mapaDiv, el('div', { class: 'coords' }, latIn, lngIn), el('p', { class: 'field__hint', style: { margin: '6px 0 0' } }, 'Si escribes las coordenadas, usa números negativos. Ejemplo: -15.55000 y -67.75000.'), estado, cerca);
     /* El mapa se crea cuando el nodo ya está en la página. */
     setTimeout(() => {
       const c = G4G.config.mapa;
@@ -123,7 +125,8 @@
 
   function paso3(pie) {
     const enviar = ui().button('Enviar denuncia', { kind: 'primary', icon: 'subir', disabled: !b.declaro, onclick: guardar });
-    pie.append(ui().button('Atrás', { onclick: () => { b.paso = 2; pintar(); } }), enviar);
+    const hint3 = el('span', { class: 'wizard__hint', role: 'status' }, b.declaro ? '' : 'Confirma lo que viste para enviar.');
+    pie.append(ui().button('Atrás', { onclick: () => { b.paso = 2; pintar(); } }), hint3, enviar);
     const input = el('input', { type: 'file', accept: 'image/*', capture: 'environment', class: 'visually-hidden', id: 'foto-input' });
     input.addEventListener('change', async () => {
       const f = input.files[0]; if (!f) return;
@@ -133,12 +136,12 @@
       el('p', { class: 'step-q' }, 'Agrega una foto (recomendado)'),
       b.foto
         ? el('div', { class: 'photo-preview' }, el('img', { src: b.foto, alt: 'Foto de la denuncia' }), el('button', { type: 'button', class: 'link', onclick: () => { b.foto = null; pintar(); } }, 'Quitar foto'))
-        : el('label', { class: 'dropzone', for: 'foto-input' }, ui().icon('denuncias', 28), el('strong', null, 'Tomar o elegir una foto'), el('span', { class: 'muted small' }, 'Se reduce automáticamente para ahorrar espacio')),
+        : el('label', { class: 'dropzone', for: 'foto-input' }, ui().icon('denuncias', 28), el('strong', null, 'Tomar o elegir una foto'), el('span', { class: 'muted small' }, 'La foto se hace más liviana sola')),
       input,
-      el('p', { class: 'step-q' }, 'Revisa tu denuncia'),
+      el('p', { class: 'step-q' }, 'Revisa lo que vas a enviar'),
       ui().dl([['Qué', b.tipo], ['Detalle', b.descripcion || 'Sin descripción'], ['Dónde', el('span', { class: 'mono' }, U.fmtCoord(b.lat, b.lng))]]),
-      el('label', { class: 'check check--block' }, el('input', { type: 'checkbox', checked: b.declaro, onchange: (e) => { b.declaro = e.target.checked; enviar.disabled = !b.declaro; } }),
-        'Declaro que lo que reporto es lo que observé directamente.'));
+      el('label', { class: 'check check--block' }, el('input', { type: 'checkbox', checked: b.declaro, onchange: (e) => { b.declaro = e.target.checked; enviar.disabled = !b.declaro; hint3.textContent = b.declaro ? '' : 'Confirma lo que viste para enviar.'; } }),
+        'Confirmo que esto es lo que vi yo mismo o yo misma.'));
   }
 
   function guardar() {
@@ -161,10 +164,10 @@
     const d = b.enviada;
     const reg = G4G.store.state.denuncias.find((x) => x.id === d.id);
     return el('div', { class: 'success' },
-      el('div', { class: 'success__mark', 'aria-hidden': 'true' }, '✓'),
+      el('img', { class: 'il il-exito', src: 'img/exito.svg', alt: '', width: 200, height: 160, decoding: 'async' }),
       el('h2', null, 'Denuncia registrada'),
       el('div', { class: 'success__code' }, 'Código de seguimiento ', el('strong', { class: 'mono' }, d.codigo)),
-      el('p', null, d.envio === 'enviada' ? 'Se envió a la autoridad del municipio para su verificación. Guarda el código para hacer seguimiento.'
+      el('p', null, d.envio === 'enviada' ? 'Ya llegó a la autoridad del municipio, que la va a revisar. Guarda el código para seguirla.'
         : d.envio === 'enviando' ? 'Enviando a la autoridad del municipio…'
         : d.envio === 'pendiente' ? 'No hay conexión con el servidor ahora. Quedó guardada en este dispositivo y se enviará sola cuando vuelva la señal.'
         : 'Quedó guardada en este dispositivo (modo demostración, sin base en línea): no la verán otros dispositivos. Puedes exportarla y entregarla a la autoridad.'),
@@ -180,8 +183,9 @@
       el('button', { type: 'button', class: 'denlist__row', onclick: () => G4G.detalle.denuncia(x.id) },
         x.foto ? el('img', { src: x.foto, alt: '', class: 'denlist__thumb' }) : el('span', { class: 'denlist__thumb denlist__thumb--empty' }, ui().icon('denuncias', 20)),
         el('span', { class: 'denlist__main' }, el('span', { class: 'cell-main' }, x.tipo), el('span', { class: 'cell-sub' }, `${x.codigo || x.id} · ${U.fmtDateTime(x.creado)}`)),
-        x.envio === 'pendiente' ? el('span', { class: 'chip chip--warn', title: 'Se enviará al volver la conexión' }, 'Sin enviar') : x.envio === 'enviada' ? el('span', { class: 'chip chip--ok' }, 'Enviada') : null,
-        ui().estadoDenunciaChip(x.estado))))) : ui().empty('Todavía no hay denuncias en este dispositivo.');
+        el('span', { class: 'denlist__chips' },
+          x.envio === 'pendiente' ? el('span', { class: 'chip chip--warn', title: 'Se enviará al volver la conexión' }, 'Sin enviar') : x.envio === 'enviada' ? el('span', { class: 'chip chip--ok' }, 'Enviada') : null,
+          ui().estadoDenunciaChip(x.estado)))))) : ui().empty('Todavía no hay denuncias en este dispositivo.');
     const geo = () => U.download('denuncias.geojson', 'application/geo+json', JSON.stringify({ type: 'FeatureCollection', features: d.map((x) => ({ type: 'Feature', geometry: { type: 'Point', coordinates: [x.lng, x.lat] }, properties: { id: x.id, codigo: x.codigo, tipo: x.tipo, descripcion: x.descripcion, creado: new Date(x.creado).toISOString(), precision_m: x.precision, estado: x.estado } })) }, null, 2));
     const csv = () => U.download('denuncias.csv', 'text/csv;charset=utf-8', U.toCSV(d, [{ key: 'codigo', label: 'codigo' }, { key: 'tipo', label: 'tipo' }, { key: 'descripcion', label: 'descripcion' }, { label: 'fecha', get: (x) => new Date(x.creado).toISOString() }, { key: 'lat', label: 'lat' }, { key: 'lng', label: 'lng' }, { key: 'precision', label: 'precision_m' }, { key: 'estado', label: 'estado' }]));
     const json = () => U.download('denuncias-con-fotos.json', 'application/json', JSON.stringify(d));
@@ -209,7 +213,7 @@
     raiz.appendChild(el('div', { class: 'grid grid--den' }, el('section', { class: 'card wizard' }, el('div', { class: 'card__body' }, contenido)), lista()));
   }
 
-  function render(root) { raiz = root; pintar(); }
+  function render(root) { root.classList.add('p2'); raiz = root; pintar(); }   // p2: inputs de 16 px y botones de 48 px en celular
   function onShow(root, params) {
     if (params && params.ubicacion) {
       b = nuevo(); b.lat = params.ubicacion.lat; b.lng = params.ubicacion.lng; b.origen = params.ubicacion.origen || 'mapa';
@@ -218,5 +222,5 @@
     setTimeout(() => { if (mini) mini.invalidateSize(); }, 80);
   }
 
-  G4G.app.register({ id: 'denuncias', titulo: 'Denunciar', icono: 'denuncias', orden: 3, grupo: 'ciudadania', subtitulo: 'Reporta lo que ves en tres pasos: qué, dónde y una foto', render, onShow });
+  G4G.app.register({ id: 'denuncias', titulo: 'Denunciar', icono: 'denuncias', orden: 3, grupo: 'ciudadania', movil: ['publico', 'operador'], subtitulo: 'Reporta lo que ves en tres pasos: qué, dónde y una foto', render, onShow });
 })();

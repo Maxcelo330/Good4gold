@@ -7,21 +7,28 @@
      municipio (los datos confidenciales nunca se guardan aquí).
    Al cambiar archivos de la app, suba la VERSION para renovar la copia.
    ========================================================================== */
-const VERSION = 'g4g-0.5.0-backend-1';
+const VERSION = 'g4g-0.7.0-novedades-1';
 const ARCHIVOS = [
   './', 'index.html', 'manifest.webmanifest',
-  'css/fonts.css', 'css/base.css', 'css/components.css', 'css/public.css', 'css/acceso.css', 'css/deteccion.css',
+  'css/fonts.css', 'css/base.css', 'css/components.css', 'css/public.css', 'css/acceso.css', 'css/deteccion.css', 'css/publico2.css', 'css/autoridad.css', 'css/ilustraciones.css', 'css/animacion.css', 'css/novedades.css', 'css/motion.css',
   'css/fonts/Montserrat-latin-1.woff2', 'css/fonts/Montserrat-latin-ext-0.woff2', 'css/fonts/Roboto-latin-3.woff2',
   'css/fonts/Roboto-latin-ext-2.woff2', 'css/fonts/RobotoCondensed-latin-5.woff2', 'css/fonts/RobotoCondensed-latin-ext-4.woff2',
-  'icons/icon-192.png', 'icons/icon-512.png', 'icons/apple-touch-icon.png', 'icons/favicon-32.png',
+  'icons/icon-192.png', 'icons/icon-512.png', 'icons/icon-maskable-512.png', 'icons/apple-touch-icon.png', 'icons/favicon-32.png',
+  'icons/logo-aurum80.svg', 'icons/logo-aurum80-lockup.svg',
+  'img/hero-andes-rio.svg', 'img/tramites.svg', 'img/biorremediacion.svg', 'img/denuncia.svg', 'img/muestra.svg', 'img/mi-estado.svg', 'img/exito.svg',
+  'img/vacio-denuncias.svg', 'img/vacio-datos.svg', 'img/login.svg', 'img/mapa-pin.svg',
+  'img/novedades-aurum80.svg', 'img/novedades-cooperacion.svg', 'img/novedades-formalizacion.svg', 'img/novedades-guia.svg',
+  'img/novedades-ley.svg', 'img/novedades-mercurio-rio.svg', 'img/novedades-oro.svg', 'img/novedades-salud.svg',
   'js/vendor/leaflet/leaflet.css', 'js/vendor/leaflet/leaflet.js', 'js/vendor/xlsx.mini.min.js',
   'js/config/config.js',
   'js/core/util.js', 'js/core/scoring.js', 'js/core/importer.js', 'js/core/api.js', 'js/core/auth.js', 'js/core/store.js', 'js/core/ui.js',
-  'js/core/charts.js', 'js/core/basemap.js', 'js/core/hidro.js', 'js/core/pwa.js', 'js/core/app.js',
-  'js/data/seed.js', 'js/data/rios.js', 'js/data/hidro-zona.js',
+  'js/core/charts.js', 'js/core/basemap.js', 'js/core/hidro.js', 'js/core/pwa.js', 'js/core/motion.js', 'js/core/app.js',
+  'js/data/seed.js', 'js/data/rios.js', 'js/data/hidro-zona.js', 'js/data/normativa.js', 'js/data/novedades.js',
   'js/modules/detalle.js', 'js/modules/inicio.js', 'js/modules/resumen.js', 'js/modules/mapa.js', 'js/modules/operadores.js',
   'js/modules/pasivos.js', 'js/modules/denuncias.js', 'js/modules/datos.js', 'js/modules/registro.js', 'js/modules/buzon.js',
-  'js/modules/configuracion.js', 'js/modules/ingresar.js', 'js/modules/deteccion.js'
+  'js/modules/configuracion.js', 'js/modules/ingresar.js', 'js/modules/deteccion.js',
+  'js/modules/tramites.js', 'js/modules/programas.js', 'js/modules/novedades.js', 'js/modules/miestado.js', 'js/modules/solicitudes.js',
+  'js/modules/monitoreo.js', 'js/modules/riesgos.js', 'js/modules/muestras.js'
 ];
 
 self.addEventListener('install', (e) => {
@@ -29,7 +36,7 @@ self.addEventListener('install', (e) => {
 });
 
 self.addEventListener('activate', (e) => {
-  e.waitUntil(caches.keys().then((ks) => Promise.all(ks.filter((k) => k.startsWith('g4g-') && k !== VERSION).map((k) => caches.delete(k))))
+  e.waitUntil(caches.keys().then((ks) => Promise.all(ks.filter((k) => k.startsWith('g4g-') && !k.startsWith('g4g-campo-') && k !== VERSION).map((k) => caches.delete(k))))
     .then(() => self.clients.claim()));
 });
 

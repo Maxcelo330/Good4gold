@@ -1,5 +1,5 @@
 /* ==========================================================================
-   Backend de "Registro y Control Minero" en Google Apps Script (gratis).
+   Backend de "Aurum80" en Google Apps Script (gratis).
    Vive DENTRO de la hoja de Google: Extensiones > Apps Script > pegar este archivo.
    Guía paso a paso: backend/INSTRUCCIONES.md
 
@@ -7,12 +7,21 @@
    - publico        (sin clave)  Operadores SIN los "No legal". NUNCA envía pasivos (colas/relaves).
    - denunciasMapa  (sin clave)  Denuncias para el mapa público: SOLO id corto, lat, lng, tipo, fecha y estado resumido.
    - denuncia       (sin clave)  Crea una denuncia en la hoja Denuncias (+ foto opcional en una carpeta privada de Drive).
-   - login          usuario y clave de un funcionario -> token de sesión (6 h).
-   - completo       (token)      Toda la base: operadores (incluidos "No legal") y pasivos.
-   - guardar        (token)      Crea o actualiza un operador o pasivo (por id).
-   - denuncias      (token)      Lista COMPLETA de denuncias (descripción, nota, si tiene foto...).
-   - estadoDenuncia (token)      Cambia el estado de una denuncia y anota el seguimiento.
-   - foto           (token)      Devuelve la foto de una denuncia.
+   - login          usuario y clave -> token de sesión (6 h) + rol (funcionario, tecnico u operador).
+   - completo       (token; funcionario, tecnico) Toda la base: operadores (incluidos "No legal") y pasivos.
+   - guardar        (token; funcionario, tecnico) Crea o actualiza un operador o pasivo (por id).
+                    El rol tecnico NO puede cambiar la situación legal ni los requisitos (eso lo verifica la autoridad).
+   - denuncias      (token; funcionario) Lista COMPLETA de denuncias (descripción, nota, si tiene foto...).
+   - estadoDenuncia (token; funcionario) Cambia el estado de una denuncia y anota el seguimiento.
+   - aceptarDenuncia(token; funcionario) Convierte una denuncia en un punto por verificar (nueva fila en Operadores, "No legal",
+                    origen "denuncia") y deja la denuncia como atendida. Es idempotente: no duplica el punto.
+   - foto           (token; funcionario, tecnico) Foto de una denuncia (tabla "denuncias") o de una muestra (tabla "muestras").
+   - guardarMuestra (token; funcionario, tecnico) Registra una muestra de campo (tamizaje colorimétrico) y marca el pasivo como muestreado.
+   - muestras       (token; funcionario, tecnico) Lista de muestras.
+   - miOperador     (token; operador) La ficha de SU cooperativa o empresa, con el estado de cada requisito, y sus inscripciones.
+   - inscribir      (token; operador) Solicita inscribirse a un programa (p. ej. biorremediación).
+   - inscripciones  (token; funcionario) Lista de solicitudes de inscripción.
+   - estadoInscripcion (token; funcionario) Cambia el estado de una solicitud.
    - salir          (token)      Cierra la sesión.
 
    La hoja NO debe estar "Publicada en la Web": si lo está, cualquiera puede
@@ -24,10 +33,18 @@
    discreción, basta redondear lat y lng en listarDenunciasMapa_() (por ejemplo a 3 decimales, unos 110 m).
    ========================================================================== */
 
-var HOJAS = { operadores: 'Operadores', pasivos: 'Pasivos', denuncias: 'Denuncias', usuarios: 'Usuarios' };
+var HOJAS = { operadores: 'Operadores', pasivos: 'Pasivos', denuncias: 'Denuncias', usuarios: 'Usuarios', muestras: 'Muestras', inscripciones: 'Inscripciones' };
 var CAB_DENUNCIAS = ['codigo', 'id', 'recibido', 'creado', 'tipo', 'descripcion', 'lat', 'lng', 'precision_m', 'estado', 'foto_id', 'nota', 'atendido_por', 'atendido_en'];
-var CAB_USUARIOS = ['usuario', 'nombre', 'municipio', 'rol', 'activo', 'clave_nueva', 'hash', 'sal', 'ultimo_ingreso'];
+var CAB_USUARIOS = ['usuario', 'nombre', 'municipio', 'rol', 'activo', 'clave_nueva', 'hash', 'sal', 'ultimo_ingreso', 'operador_id'];
+var CAB_MUESTRAS = ['id', 'fecha', 'pasivo_id', 'operador_id', 'lugar', 'lat', 'lng', 'precision_m', 'matriz', 'volumen_m3', 'hg2_ppb', 'hg_total_ppb', 'ch3hg_ppb', 'nivel2', 'semaforo', 'lote_reactivo', 'confirmado_lab', 'foto_id', 'notas', 'tomada_por', 'registrado_en'];
+var CAB_INSCRIPCIONES = ['id', 'operador_id', 'operador_nombre', 'programa', 'estado', 'mensaje', 'nota', 'creado', 'atendido_por', 'atendido_en'];
+var CAB_OPERADORES_EXTRA = ['origen', 'denuncia_codigo'];       // columnas que se agregan sola a la hoja Operadores
 var ESTADOS_DENUNCIA = ['nueva', 'en_revision', 'atendida', 'descartada'];  // = config.estadosDenuncia
+var ESTADOS_INSCRIPCION = ['pendiente', 'en_revision', 'aceptada', 'no_aplica'];  // = config.estadosInscripcion
+var PROGRAMAS = ['biorremediacion'];                             // = config.programas (ids)
+var R_AUTORIDAD = ['funcionario'], R_CAMPO = ['funcionario', 'tecnico'], R_OPERADOR = ['operador'];
+var SEMAFOROS = ['verde', 'amarillo', 'rojo'], MATRICES = ['agua', 'lodo'];
+var TIPOS_DENUNCIA = ['Posible operación sin registro o licencia', 'Vertido de colas o relaves a un río', 'Uso visible de mercurio', 'Acumulación de colas sin control', 'Otro'];   // = config.tiposDenuncia
 var SESION_S = 21600;               // 6 horas (máximo de CacheService)
 var MAX_FALLOS = 5, BLOQUEO_S = 900;
 var MIN_CLAVE = 6;                  // caracteres mínimos de una clave
@@ -44,7 +61,7 @@ function doGet(e) {
   var accion = (e && e.parameter && e.parameter.accion) || 'estado';
   if (accion === 'publico') return responder(publico_());
   if (accion === 'denunciasMapa') return responder(denunciasMapa_());
-  return responder({ ok: true, servicio: 'Registro y Control Minero', hora: new Date().toISOString() });
+  return responder({ ok: true, servicio: 'Aurum80', hora: new Date().toISOString() });
 }
 
 function doPost(e) {
@@ -58,11 +75,18 @@ function doPost(e) {
       case 'denuncia': return responder(recibirDenuncia_(p.denuncia || {}));
       case 'login': return responder(login_(String(p.usuario || ''), String(p.clave || '')));
       case 'salir': if (p.token) CacheService.getScriptCache().remove('ses_' + p.token); return responder({ ok: true });
-      case 'completo': return responder(conSesion_(p.token, function () { return completo_(); }));
-      case 'guardar': return responder(conSesion_(p.token, function (u) { return guardar_(u, p.tabla, p.registro || {}); }));
-      case 'denuncias': return responder(conSesion_(p.token, function () { return listarDenuncias_(); }));
-      case 'estadoDenuncia': return responder(conSesion_(p.token, function (u) { return estadoDenuncia_(u, p.id, p.estado, p.nota); }));
-      case 'foto': return responder(conSesion_(p.token, function () { return foto_(p.id); }));
+      case 'completo': return responder(conSesion_(p.token, function () { return completo_(); }, R_CAMPO));
+      case 'guardar': return responder(conSesion_(p.token, function (u) { return guardar_(u, p.tabla, p.registro || {}); }, R_CAMPO));
+      case 'denuncias': return responder(conSesion_(p.token, function () { return listarDenuncias_(); }, R_AUTORIDAD));
+      case 'estadoDenuncia': return responder(conSesion_(p.token, function (u) { return estadoDenuncia_(u, p.id, p.estado, p.nota); }, R_AUTORIDAD));
+      case 'aceptarDenuncia': return responder(conSesion_(p.token, function (u) { return aceptarDenuncia_(u, p.id, p.nota); }, R_AUTORIDAD));
+      case 'foto': return responder(conSesion_(p.token, function (u) { return foto_(u, p.id, p.tabla); }, R_CAMPO));
+      case 'guardarMuestra': return responder(conSesion_(p.token, function (u) { return guardarMuestra_(u, p.muestra || {}); }, R_CAMPO));
+      case 'muestras': return responder(conSesion_(p.token, function () { return listarMuestras_(); }, R_CAMPO));
+      case 'miOperador': return responder(conSesion_(p.token, function (u) { return miOperador_(u); }, R_OPERADOR));
+      case 'inscribir': return responder(conSesion_(p.token, function (u) { return inscribir_(u, p.programa, p.mensaje); }, R_OPERADOR));
+      case 'inscripciones': return responder(conSesion_(p.token, function () { return listarInscripciones_(); }, R_AUTORIDAD));
+      case 'estadoInscripcion': return responder(conSesion_(p.token, function (u) { return estadoInscripcion_(u, p.id, p.estado, p.nota); }, R_AUTORIDAD));
       default: return responder(fallo_('Acción desconocida.', 'accion'));
     }
   } catch (err) {
@@ -119,7 +143,7 @@ function publico_() {
   }).map(sinAuditoria_);
   return { ok: true, nivel: 'publico', operadores: visibles, pasivos: [], generado: new Date().toISOString() };
 }
-function sinAuditoria_(f) { var o = {}; for (var k in f) if (k !== 'editado_por' && k !== 'editado_en') o[k] = f[k]; return o; }
+function sinAuditoria_(f) { var o = {}; for (var k in f) if (k !== 'editado_por' && k !== 'editado_en' && k !== 'denuncia_codigo' && k !== 'origen') o[k] = f[k]; return o; }
 
 function completo_() {
   return { ok: true, nivel: 'completo', operadores: filas_(HOJAS.operadores), pasivos: filas_(HOJAS.pasivos), generado: new Date().toISOString() };
@@ -146,7 +170,11 @@ function login_(usuario, clave) {
     if (activo === 'no' || activo === 'false' || activo === '0') break;
     if (!v[i][c.hash] || hashClave_(clave, String(v[i][c.sal])) !== String(v[i][c.hash])) break;
     cache.remove(kf);
-    var u = { usuario: usuario, nombre: String(v[i][c.nombre] || usuario), municipio: String(v[i][c.municipio] || ''), rol: String(v[i][c.rol] || 'funcionario') };
+    var rol = norm_(v[i][c.rol]);
+    if (['funcionario', 'tecnico', 'operador'].indexOf(rol) < 0) break;   // sin un rol válido no se ingresa (falla cerrado)
+    var opId = c.operador_id !== undefined ? String(v[i][c.operador_id] || '').trim() : '';
+    if (rol === 'operador' && !opId) break;   // un usuario "operador" sin cooperativa asignada no puede ingresar
+    var u = { usuario: usuario, nombre: String(v[i][c.nombre] || usuario), municipio: String(v[i][c.municipio] || ''), rol: rol, operador_id: opId };
     var token = Utilities.getUuid() + Utilities.getUuid().slice(0, 8);
     cache.put('ses_' + token, JSON.stringify(u), SESION_S);
     h.getRange(i + 1, c.ultimo_ingreso + 1).setValue(new Date());
@@ -156,11 +184,14 @@ function login_(usuario, clave) {
   return fallo_('Usuario o clave incorrectos.', 'credenciales');
 }
 
-function conSesion_(token, fn) {
+/* Valida la sesión Y el rol en el servidor. "roles" es la lista de roles que pueden usar la acción. */
+function conSesion_(token, fn, roles) {
   if (!token) return fallo_('Inicie sesión.', 'sesion');
   var raw = CacheService.getScriptCache().get('ses_' + token);
   if (!raw) return fallo_('La sesión venció. Vuelva a ingresar.', 'sesion');
-  return fn(JSON.parse(raw));
+  var u = JSON.parse(raw);
+  if (roles && roles.indexOf(u.rol) < 0) return fallo_('Su cuenta no tiene permiso para esta acción.', 'permiso');
+  return fn(u);
 }
 
 function indice_(cab) { var o = {}; cab.forEach(function (h, i) { o[String(h).trim()] = i; }); return o; }
@@ -169,29 +200,39 @@ function indice_(cab) { var o = {}; cab.forEach(function (h, i) { o[String(h).tr
 function guardar_(u, tabla, reg) {
   var nombre = tabla === 'operadores' ? HOJAS.operadores : tabla === 'pasivos' ? HOJAS.pasivos : null;
   if (!nombre) return fallo_('Tabla no válida.', 'tabla');
+  if (!reg || typeof reg !== 'object') return fallo_('Registro no válido.', 'datos');
+  /* El rol "tecnico" registra datos de campo, pero la situación legal y los requisitos los verifica la autoridad. */
+  if (u.rol === 'tecnico' && tabla === 'operadores') {
+    for (var k in reg) { var nk = norm_(k).replace(/[^a-z0-9]/g, ''); if (/^(estadolegal|estado|legalidad|situacionlegal|situacion|categoria|condicion|origen|denunciacodigo)$/.test(nk) || /^req/.test(nk)) delete reg[k]; }
+  }
+  if (tabla === 'operadores') { delete reg.origen; delete reg.denuncia_codigo; }   // solo los fija aceptarDenuncia
   var lock = LockService.getScriptLock(); lock.waitLock(20000);
-  try {
-    var h = hoja_(nombre);
-    if (!h) return fallo_('No existe la hoja ' + nombre + '.', 'config');
-    var lastCol = Math.max(h.getLastColumn(), 1);
-    var cab = h.getRange(1, 1, 1, lastCol).getValues()[0].map(function (x) { return String(x).trim(); });
-    ['editado_por', 'editado_en'].forEach(function (k) { if (cab.indexOf(k) < 0) { cab.push(k); h.getRange(1, cab.length).setValue(k); } });
-    var c = indice_(cab);
-    if (c.id === undefined) return fallo_('La hoja ' + nombre + ' no tiene columna "id".', 'config');
-    var id = String(reg.id || '').trim();
-    if (!id) id = siguienteId_(h, c.id, tabla === 'operadores' ? 'OP-' : 'PA-');
-    reg.id = id; reg.editado_por = u.usuario; reg.editado_en = new Date();
-    var fila = -1, n = h.getLastRow();
-    if (n >= 2) {
-      var ids = h.getRange(2, c.id + 1, n - 1, 1).getValues();
-      for (var i = 0; i < ids.length; i++) if (String(ids[i][0]).trim() === id) { fila = i + 2; break; }
-    }
-    var actual = fila > 0 ? h.getRange(fila, 1, 1, cab.length).getValues()[0] : cab.map(function () { return ''; });
-    cab.forEach(function (k, j) { if (Object.prototype.hasOwnProperty.call(reg, k)) actual[j] = reg[k] === null || reg[k] === undefined ? '' : (typeof reg[k] === 'string' ? texto_(reg[k]) : reg[k]); });
-    if (fila > 0) h.getRange(fila, 1, 1, cab.length).setValues([actual]);
-    else h.appendRow(actual);
-    return { ok: true, id: id, creado: fila < 0 };
-  } finally { lock.releaseLock(); }
+  try { return guardarFila_(u, tabla, nombre, reg); } finally { lock.releaseLock(); }
+}
+
+/* Escribe una fila (por id). Quien la llama debe tener el candado. */
+function guardarFila_(u, tabla, nombre, reg) {
+  var h = hoja_(nombre);
+  if (!h) return fallo_('No existe la hoja ' + nombre + '.', 'config');
+  var lastCol = Math.max(h.getLastColumn(), 1);
+  var cab = h.getRange(1, 1, 1, lastCol).getValues()[0].map(function (x) { return String(x).trim(); });
+  var extra = ['editado_por', 'editado_en'].concat(tabla === 'operadores' ? CAB_OPERADORES_EXTRA : tabla === 'pasivos' ? ['notas'] : []);   // 'notas' de Pasivos la usa la planilla de campo
+  extra.forEach(function (k) { if (cab.indexOf(k) < 0) { cab.push(k); h.getRange(1, cab.length).setValue(k); } });
+  var c = indice_(cab);
+  if (c.id === undefined) return fallo_('La hoja ' + nombre + ' no tiene columna "id".', 'config');
+  var id = String(reg.id || '').trim();
+  if (!id) id = siguienteId_(h, c.id, tabla === 'operadores' ? 'OP-' : 'PA-');
+  reg.id = id; reg.editado_por = u.usuario; reg.editado_en = new Date();
+  var fila = -1, n = h.getLastRow();
+  if (n >= 2) {
+    var ids = h.getRange(2, c.id + 1, n - 1, 1).getValues();
+    for (var i = 0; i < ids.length; i++) if (String(ids[i][0]).trim() === id) { fila = i + 2; break; }
+  }
+  var actual = fila > 0 ? h.getRange(fila, 1, 1, cab.length).getValues()[0] : cab.map(function () { return ''; });
+  cab.forEach(function (k, j) { if (Object.prototype.hasOwnProperty.call(reg, k)) actual[j] = reg[k] === null || reg[k] === undefined ? '' : (typeof reg[k] === 'string' ? texto_(reg[k]) : reg[k]); });
+  if (fila > 0) h.getRange(fila, 1, 1, cab.length).setValues([actual]);
+  else h.appendRow(actual);
+  return { ok: true, id: id, creado: fila < 0 };
 }
 
 function siguienteId_(h, col, pref) {
@@ -240,6 +281,7 @@ function recibirDenuncia_(d) {
   var lat = Number(d.lat), lng = Number(d.lng);
   if (d.lat === '' || d.lng === '' || d.lat === null || d.lng === null || !isFinite(lat) || !isFinite(lng) || lat < -23.5 || lat > -9 || lng < -70 || lng > -57) return fallo_('Ubicación fuera de Bolivia.', 'datos');
   var tipo = texto_(d.tipo, 80), desc = texto_(d.descripcion, 2000);
+  if (tipo && TIPOS_DENUNCIA.indexOf(tipo) < 0) tipo = 'Otro';   // el tipo se publica en el mapa: solo valores de la lista
   if (!tipo) return fallo_('Falta el tipo de denuncia.', 'datos');
   var dispositivo = /^[A-Za-z0-9_-]{1,60}$/.test(String(d.dispositivo || '')) ? String(d.dispositivo) : '';
   var id = /^[A-Za-z0-9_-]{1,60}$/.test(String(d.id || '')) ? String(d.id) : Utilities.getUuid();
@@ -273,7 +315,7 @@ function recibirDenuncia_(d) {
 function carpetaFotos_() {
   var props = PropertiesService.getScriptProperties(), id = props.getProperty('CARPETA_FOTOS');
   if (id) { try { return DriveApp.getFolderById(id); } catch (e) { /* se recrea */ } }
-  var f = DriveApp.createFolder('Control Minero - fotos de denuncias (privado)');
+  var f = DriveApp.createFolder('Aurum80 - fotos de denuncias (privado)');
   props.setProperty('CARPETA_FOTOS', f.getId());
   return f;
 }
@@ -305,7 +347,7 @@ function listarDenunciasMapa_() {
     var est = String(r.estado || 'nueva');
     var lat = Number(r.lat), lng = Number(r.lng);
     if (est === 'descartada' || r.lat === '' || r.lng === '' || !isFinite(lat) || !isFinite(lng)) return;
-    out.push({ id: String(r.codigo || ''), lat: lat, lng: lng, tipo: String(r.tipo || ''), fecha: String(r.creado || r.recibido || '').slice(0, 10), estado: est === 'atendida' ? 'atendida' : 'abierta' });
+    out.push({ id: String(r.codigo || ''), lat: Math.round(lat * 1000) / 1000, lng: Math.round(lng * 1000) / 1000, tipo: String(r.tipo || ''), fecha: String(r.creado || r.recibido || '').slice(0, 10), estado: est === 'atendida' ? 'atendida' : 'abierta' });
   });
   out.reverse();   // las más recientes primero
   return out.slice(0, MAX_PUNTOS_MAPA);
@@ -314,26 +356,174 @@ function listarDenunciasMapa_() {
 function estadoDenuncia_(u, id, estado, nota) {
   if (ESTADOS_DENUNCIA.indexOf(estado) < 0) return fallo_('Estado no válido.', 'datos');
   var lock = LockService.getScriptLock(); lock.waitLock(20000);
+  try { return estadoDenunciaFila_(u, id, estado, nota) ? { ok: true } : fallo_('No se encontró la denuncia.', 'datos'); }
+  finally { lock.releaseLock(); }
+}
+
+/* Cambia el estado de una denuncia. Quien la llama debe tener el candado. Devuelve false si no existe. */
+function estadoDenunciaFila_(u, id, estado, nota) {
+  var h = hojaDenuncias_(), v = h.getDataRange().getValues(), c = indice_(v[0].map(String));
+  for (var i = 1; i < v.length; i++) {
+    if (String(v[i][c.id]) !== String(id)) continue;
+    h.getRange(i + 1, c.estado + 1).setValue(estado);
+    if (nota !== undefined && nota !== null) h.getRange(i + 1, c.nota + 1).setValue(texto_(nota, 1000));
+    h.getRange(i + 1, c.atendido_por + 1).setValue(u.usuario);
+    h.getRange(i + 1, c.atendido_en + 1).setValue(new Date());
+    CacheService.getScriptCache().remove('den_mapa');
+    return true;
+  }
+  return false;
+}
+
+/* Denuncia aceptada -> punto por verificar. Crea una fila en Operadores (situación "No legal", origen "denuncia",
+   sin nombre de persona alguna) y marca la denuncia como atendida. Si ya se aceptó antes, devuelve el mismo punto. */
+function aceptarDenuncia_(u, id, nota) {
+  var lock = LockService.getScriptLock(); lock.waitLock(20000);
   try {
-    var h = hojaDenuncias_(), v = h.getDataRange().getValues(), c = indice_(v[0].map(String));
-    for (var i = 1; i < v.length; i++) {
-      if (String(v[i][c.id]) !== String(id)) continue;
-      h.getRange(i + 1, c.estado + 1).setValue(estado);
-      if (nota !== undefined && nota !== null) h.getRange(i + 1, c.nota + 1).setValue(texto_(nota, 1000));
-      h.getRange(i + 1, c.atendido_por + 1).setValue(u.usuario);
-      h.getRange(i + 1, c.atendido_en + 1).setValue(new Date());
-      CacheService.getScriptCache().remove('den_mapa');
-      return { ok: true };
-    }
-    return fallo_('No se encontró la denuncia.', 'datos');
+    var hd = hojaDenuncias_(), v = hd.getDataRange().getValues(), c = indice_(v[0].map(String)), fila = null;
+    for (var i = 1; i < v.length; i++) if (String(v[i][c.id]) === String(id)) { fila = v[i]; break; }
+    if (!fila) return fallo_('No se encontró la denuncia.', 'datos');
+    var codigo = String(fila[c.codigo] || ''), lat = Number(fila[c.lat]), lng = Number(fila[c.lng]);
+    if (!isFinite(lat) || !isFinite(lng) || lat < -23.5 || lat > -9 || lng < -70 || lng > -57) return fallo_('La denuncia no tiene una ubicación válida.', 'datos');
+    var ho = hoja_(HOJAS.operadores);
+    if (!ho) return fallo_('No existe la hoja Operadores.', 'config');
+    asegurarCabecera_(ho, CAB_OPERADORES_EXTRA);
+    var previos = filas_(HOJAS.operadores).filter(function (o) { return codigo && String(o.denuncia_codigo || '') === codigo; });
+    if (previos.length) { estadoDenunciaFila_(u, id, 'atendida', nota); return { ok: true, id: previos[0].id, repetida: true }; }
+    var hoy = Utilities.formatDate(new Date(), libro_().getSpreadsheetTimeZone(), 'yyyy-MM-dd');
+    var r = guardarFila_(u, 'operadores', HOJAS.operadores, {
+      nombre: 'Punto por verificar (' + codigo + ')', tipo: '', estado_legal: 'No legal', lat: lat, lng: lng,
+      actualizado: hoy, origen: 'denuncia', denuncia_codigo: codigo
+    });
+    if (!r.ok) return r;
+    estadoDenunciaFila_(u, id, 'atendida', (nota ? texto_(nota, 800) + ' · ' : '') + 'Convertida en punto por verificar ' + r.id + '.');
+    return { ok: true, id: r.id, repetida: false };
   } finally { lock.releaseLock(); }
 }
 
-function foto_(id) {
-  var r = filas_(HOJAS.denuncias).filter(function (x) { return String(x.id) === String(id); })[0];
+/* Foto de una denuncia (solo autoridad) o de una muestra (autoridad y técnico). */
+function foto_(u, id, tabla) {
+  var esMuestra = tabla === 'muestras';
+  if (!esMuestra && u.rol !== 'funcionario') return fallo_('Su cuenta no tiene permiso para esta acción.', 'permiso');
+  var r = filas_(esMuestra ? HOJAS.muestras : HOJAS.denuncias).filter(function (x) { return String(x.id) === String(id); })[0];
   if (!r || !r.foto_id) return fallo_('Sin foto.', 'datos');
   var b = DriveApp.getFileById(r.foto_id).getBlob();
   return { ok: true, foto: 'data:' + b.getContentType() + ';base64,' + Utilities.base64Encode(b.getBytes()) };
+}
+
+/* ---------------- Muestras de campo (tamizaje) ---------------- */
+function hojaPropia_(nombre, cab) {
+  var h = hoja_(nombre);
+  if (!h) { h = libro_().insertSheet(nombre); h.appendRow(cab); h.setFrozenRows(1); }
+  else asegurarCabecera_(h, cab);
+  return h;
+}
+function num_(x, min, max) { if (x === '' || x === null || x === undefined) return ''; var n = Number(x); return isFinite(n) && n >= min && n <= max ? n : null; }
+/* true / "si" / "true" / 1 -> 'si'; cualquier otra cosa ("no", "false", vacío) -> 'no'. */
+function siNo_(x) { return x === true || /^(si|true|1)$/.test(norm_(x)) ? 'si' : 'no'; }
+function idSeguro_(x, max) { return /^[A-Za-z0-9_-]+$/.test(String(x || '')) && String(x).length <= (max || 60) ? String(x) : ''; }
+
+function guardarMuestra_(u, m) {
+  var lat = Number(m.lat), lng = Number(m.lng);
+  if (m.lat === '' || m.lng === '' || m.lat == null || m.lng == null || !isFinite(lat) || !isFinite(lng) || lat < -23.5 || lat > -9 || lng < -70 || lng > -57) return fallo_('Ubicación fuera de Bolivia.', 'datos');
+  var matriz = norm_(m.matriz), semaforo = norm_(m.semaforo);
+  if (MATRICES.indexOf(matriz) < 0) return fallo_('Tipo de muestra no válido.', 'datos');
+  if (SEMAFOROS.indexOf(semaforo) < 0) return fallo_('Resultado no válido.', 'datos');
+  var hg2 = num_(m.hg2_ppb, 0, 1e6), hgt = num_(m.hg_total_ppb, 0, 1e6), ch3 = num_(m.ch3hg_ppb, 0, 1e6), vol = num_(m.volumen_m3, 0, 1e9), prec = num_(m.precision_m, 0, 1e5);
+  if (hg2 === null || hgt === null || ch3 === null || vol === null || prec === null || hg2 === '') return fallo_('Hay un valor numérico no válido.', 'datos');
+  var id = idSeguro_(m.id) || ('MU-' + Utilities.getUuid().slice(0, 8).toUpperCase());
+  var fecha = m.fecha ? new Date(m.fecha) : new Date();
+  if (isNaN(fecha.getTime()) || fecha.getTime() > Date.now() + 86400000) fecha = new Date();
+  var pasivoId = idSeguro_(m.pasivo_id, 40), opId = idSeguro_(m.operador_id, 40);
+
+  var lock = LockService.getScriptLock(); lock.waitLock(20000);
+  try {
+    var h = hojaPropia_(HOJAS.muestras, CAB_MUESTRAS), v = h.getDataRange().getValues(), cab = v[0].map(String), c = indice_(cab);
+    for (var i = 1; i < v.length; i++) if (String(v[i][c.id]) === id) return { ok: true, id: id, repetida: true };   // reintento de una muestra ya recibida
+    var fotoId = '';
+    if (m.foto && String(m.foto).length <= MAX_FOTO_CHARS) {
+      var mm = String(m.foto).match(/^data:(image\/(jpeg|png|webp));base64,([A-Za-z0-9+\/=]+)$/);
+      if (mm) { try { fotoId = carpetaFotos_().createFile(Utilities.newBlob(Utilities.base64Decode(mm[3]), mm[1], id + '.' + (mm[2] === 'jpeg' ? 'jpg' : mm[2]))).getId(); } catch (e) { console.error('Foto de muestra no guardada: ' + e.message); } }
+    }
+    var valores = { id: id, fecha: fecha, pasivo_id: pasivoId, operador_id: opId, lugar: texto_(m.lugar, 120), lat: lat, lng: lng, precision_m: prec,
+      matriz: matriz, volumen_m3: vol, hg2_ppb: hg2, hg_total_ppb: hgt, ch3hg_ppb: ch3, nivel2: siNo_(m.nivel2), semaforo: semaforo,
+      lote_reactivo: texto_(m.lote_reactivo, 40), confirmado_lab: siNo_(m.confirmado_lab), foto_id: fotoId, notas: texto_(m.notas, 600),
+      tomada_por: u.usuario, registrado_en: new Date() };
+    h.appendRow(cab.map(function (k) { return Object.prototype.hasOwnProperty.call(valores, k) ? valores[k] : ''; }));
+    if (pasivoId) marcarMuestraPasivo_(pasivoId);
+    return { ok: true, id: id };
+  } finally { lock.releaseLock(); }
+}
+
+/* Si la muestra es de un pasivo conocido, deja constancia en su columna "muestra" (la usa el puntaje). */
+function marcarMuestraPasivo_(pasivoId) {
+  var h = hoja_(HOJAS.pasivos); if (!h || h.getLastRow() < 2) return;
+  var v = h.getDataRange().getValues(), c = indice_(v[0].map(String));
+  if (c.id === undefined || c.muestra === undefined) return;
+  for (var i = 1; i < v.length; i++) if (String(v[i][c.id]).trim() === pasivoId) { h.getRange(i + 1, c.muestra + 1).setValue('si'); return; }
+}
+
+function listarMuestras_() {
+  var lista = filas_(HOJAS.muestras, true).map(function (r) {
+    var o = {}; for (var k in r) if (k !== 'foto_id') o[k] = r[k];
+    o.tieneFoto = !!r.foto_id; return o;
+  });
+  lista.reverse();
+  return { ok: true, muestras: lista };
+}
+
+/* ---------------- Cooperativas / empresas (rol operador) ---------------- */
+function miOperador_(u) {
+  var op = filas_(HOJAS.operadores).filter(function (o) { return String(o.id).trim() === u.operador_id; })[0];
+  if (!op) return fallo_('Su cuenta no está vinculada a una cooperativa o empresa registrada. Avise a la autoridad.', 'datos');
+  delete op.denuncia_codigo; delete op.origen;
+  var ins = filas_(HOJAS.inscripciones).filter(function (r) { return String(r.operador_id).trim() === u.operador_id; }).map(function (r) {
+    return { id: r.id, programa: r.programa, estado: r.estado, creado: r.creado, nota: r.nota };
+  });
+  return { ok: true, operador: op, inscripciones: ins };
+}
+
+function inscribir_(u, programa, mensaje) {
+  programa = norm_(programa);
+  if (PROGRAMAS.indexOf(programa) < 0) return fallo_('Programa no válido.', 'datos');
+  var op = filas_(HOJAS.operadores).filter(function (o) { return String(o.id).trim() === u.operador_id; })[0];
+  if (!op) return fallo_('Su cuenta no está vinculada a una cooperativa o empresa registrada.', 'datos');
+  var lock = LockService.getScriptLock(); lock.waitLock(20000);
+  try {
+    var h = hojaPropia_(HOJAS.inscripciones, CAB_INSCRIPCIONES), v = h.getDataRange().getValues(), cab = v[0].map(String), c = indice_(cab);
+    for (var i = 1; i < v.length; i++) {
+      if (String(v[i][c.operador_id]).trim() === u.operador_id && norm_(v[i][c.programa]) === programa && ['pendiente', 'en_revision', 'aceptada'].indexOf(norm_(v[i][c.estado])) >= 0)
+        return { ok: true, id: v[i][c.id], repetida: true };   // ya tiene una solicitud activa
+    }
+    var id = siguienteId_(h, c.id, 'IN-');
+    var valores = { id: id, operador_id: u.operador_id, operador_nombre: texto_(op.nombre, 120), programa: programa, estado: 'pendiente',
+      mensaje: texto_(mensaje, 500), nota: '', creado: new Date(), atendido_por: '', atendido_en: '' };
+    h.appendRow(cab.map(function (k) { return Object.prototype.hasOwnProperty.call(valores, k) ? valores[k] : ''; }));
+    return { ok: true, id: id };
+  } finally { lock.releaseLock(); }
+}
+
+function listarInscripciones_() {
+  var lista = filas_(HOJAS.inscripciones, true);
+  lista.reverse();
+  return { ok: true, inscripciones: lista };
+}
+
+function estadoInscripcion_(u, id, estado, nota) {
+  if (ESTADOS_INSCRIPCION.indexOf(estado) < 0) return fallo_('Estado no válido.', 'datos');
+  var lock = LockService.getScriptLock(); lock.waitLock(20000);
+  try {
+    var h = hojaPropia_(HOJAS.inscripciones, CAB_INSCRIPCIONES), v = h.getDataRange().getValues(), c = indice_(v[0].map(String));
+    for (var i = 1; i < v.length; i++) {
+      if (String(v[i][c.id]) !== String(id)) continue;
+      h.getRange(i + 1, c.estado + 1).setValue(estado);
+      if (nota !== undefined && nota !== null) h.getRange(i + 1, c.nota + 1).setValue(texto_(nota, 600));
+      h.getRange(i + 1, c.atendido_por + 1).setValue(u.usuario);
+      h.getRange(i + 1, c.atendido_en + 1).setValue(new Date());
+      return { ok: true };
+    }
+    return fallo_('No se encontró la solicitud.', 'datos');
+  } finally { lock.releaseLock(); }
 }
 
 /* ---------------- Administración (se ejecutan desde el editor) ---------------- */
@@ -350,11 +540,37 @@ function configurar() {
        (escriba otra en clave_nueva) cuando se use con datos reales. */
     h.appendRow(['Aurum80', 'Funcionario municipal', '', 'funcionario', 'si', 'Aurum80', '', '', '']);
   } else asegurarCabecera_(h, CAB_USUARIOS);
+  hojaPropia_(HOJAS.muestras, CAB_MUESTRAS);
+  hojaPropia_(HOJAS.inscripciones, CAB_INSCRIPCIONES);
+  var ho = hoja_(HOJAS.operadores); if (ho) asegurarCabecera_(ho, CAB_OPERADORES_EXTRA);
+  var hp = hoja_(HOJAS.pasivos); if (hp) asegurarCabecera_(hp, ['notas']);
+  crearUsuariosDemo();
   procesarClaves();
   carpetaFotos_();
   var informe = diagnostico();
   console.log(informe);
   return informe;
+}
+
+/* Agrega las cuentas de demostración que falten (no toca las existentes):
+   - Campo80  (rol tecnico): usa la app "Aurum80 Campo".
+   - Coop80   (rol operador): cooperativa de prueba, vinculada a un operador "En proceso" (o al primero de la hoja).
+   Sus claves están en este código público: SOLO para la demostración. Cámbielas o desactívelas (activo = no) con datos reales. */
+function crearUsuariosDemo() {
+  var h = hoja_(HOJAS.usuarios); if (!h) return 0;
+  asegurarCabecera_(h, CAB_USUARIOS);
+  var existentes = filas_(HOJAS.usuarios).map(function (r) { return norm_(r.usuario); }), n = 0;
+  var ops = filas_(HOJAS.operadores), elegido = ops.filter(function (o) { return /proceso|tramite/.test(norm_(campo_(o, ['estadolegal', 'estado', 'situacion']))); })[0] || ops[0];
+  var nuevos = [['Campo80', 'Técnico de campo (demo)', '', 'tecnico', 'si', 'Campo80', '', '', '', '']];
+  if (elegido && elegido.id) nuevos.push(['Coop80', 'Cooperativa de prueba (demo)', '', 'operador', 'si', 'Coop80', '', '', '', String(elegido.id)]);
+  var cab = h.getRange(1, 1, 1, Math.max(h.getLastColumn(), 1)).getValues()[0].map(function (x) { return String(x).trim(); }), c = indice_(cab);
+  nuevos.forEach(function (f) {
+    if (existentes.indexOf(norm_(f[0])) >= 0) return;
+    var fila = cab.map(function () { return ''; });
+    CAB_USUARIOS.forEach(function (k, j) { if (c[k] !== undefined) fila[c[k]] = f[j]; });
+    h.appendRow(fila); n++;
+  });
+  return n;
 }
 
 /* Revisa que las pestañas y columnas existan. Ejecutar desde el editor y mirar el registro de ejecución. */
@@ -363,7 +579,9 @@ function diagnostico() {
     Operadores: ['id', 'nombre', 'estado_legal', 'lat', 'lng'],
     Pasivos: ['id', 'lat', 'lng'],
     Denuncias: CAB_DENUNCIAS,
-    Usuarios: CAB_USUARIOS
+    Usuarios: CAB_USUARIOS,
+    Muestras: CAB_MUESTRAS,
+    Inscripciones: CAB_INSCRIPCIONES
   };
   var lineas = [];
   Object.keys(pedidas).forEach(function (nombre) {

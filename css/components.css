@@ -4,7 +4,7 @@
 
 /* ---- Tarjeta ---- */
 .card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); }
-.card__head { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 18px 12px; border-bottom: 1px solid var(--line-2); }
+.card__head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 12px; padding: 14px 18px 12px; border-bottom: 1px solid var(--line-2); }
 .card__actions { display: flex; gap: 8px; flex-wrap: wrap; }
 .card__body { padding: 16px 18px 18px; }
 .card--flush .card__body { padding: 0; }
@@ -51,6 +51,7 @@
 .btn--primary { background: var(--ink); color: #fff; border-color: var(--ink); } .btn--primary:hover { background: #38342E; }
 .btn--danger { color: var(--bad); border-color: #D9A29D; } .btn--danger:hover { background: #FBE3E0; }
 .btn:disabled { opacity: .5; cursor: not-allowed; }
+.btn--primary:disabled { opacity: 1; background: #D4CDBE; border-color: #D4CDBE; color: #4F4B43; }
 .icon-btn { border: 0; background: none; padding: 6px; color: var(--ink-2); border-radius: var(--radius); } .icon-btn:hover { background: var(--line-2); }
 .link { border: 0; background: none; padding: 0; color: var(--blue); text-decoration: underline; text-underline-offset: 2px; font-weight: 500; text-align: left; }
 .input { width: 100%; padding: 8px 10px; border: 1px solid var(--line); background: #fff; border-radius: var(--radius); min-height: 36px; }
@@ -72,6 +73,7 @@ textarea.input { resize: vertical; }
 .tbl tr.clickable { cursor: pointer; } .tbl tr.clickable:hover td { background: #F6F1E5; } .tbl tr.clickable:focus-visible { outline-offset: -2px; }
 .cell-main { font-weight: 600; } .cell-sub { color: var(--ink-3); font-size: 12.5px; }
 .fresh { font-size: 12.5px; color: var(--ink-2); } .fresh.is-old { color: #8A5A00; } .fresh__flag { font-weight: 600; }
+@media (max-width: 700px) { .dl { grid-template-columns: 96px minmax(0, 1fr); gap: 6px 12px; } }
 @media (max-width: 700px) {
   .tbl thead { display: none; } .tbl, .tbl tbody, .tbl tr, .tbl td { display: block; width: 100%; }
   .tbl tr { padding: 10px 14px; border-bottom: 1px solid var(--line); } .tbl td { border: 0; padding: 3px 0; text-align: left !important; }
@@ -79,11 +81,11 @@ textarea.input { resize: vertical; }
 }
 
 /* ---- Panel lateral de detalle ---- */
-.scrim { position: fixed; inset: 0; background: rgba(29, 27, 24, .35); opacity: 0; pointer-events: none; transition: opacity .18s; z-index: 900; }
+.scrim { position: fixed; inset: 0; background: rgba(29, 27, 24, .35); opacity: 0; pointer-events: none; transition: opacity var(--dur-2, 240ms) var(--ease-io, cubic-bezier(.4, 0, .2, 1)); z-index: 900; }
 .drawer { position: fixed; z-index: 950; top: 0; right: 0; bottom: 0; width: min(460px, 100%); background: var(--surface); border-left: 1px solid var(--ink-2); display: flex; flex-direction: column; transform: translateX(102%); transition: transform .2s ease; box-shadow: -12px 0 30px rgba(0,0,0,.12); }
 body.drawer-open .drawer { transform: none; } body.drawer-open .scrim { opacity: 1; pointer-events: auto; }
 .drawer__head { display: flex; justify-content: space-between; gap: 12px; padding: 18px 20px 14px; border-bottom: 1px solid var(--line); }
-.kicker { font: 700 12px var(--f-cond); letter-spacing: .06em; text-transform: uppercase; color: var(--gold); margin-bottom: 4px; }
+.kicker { font: 700 12px var(--f-cond); letter-spacing: .06em; text-transform: uppercase; color: var(--value); margin-bottom: 4px; }
 .drawer__sub { color: var(--ink-3); font-size: 13px; margin-top: 3px; }
 .drawer__body { padding: 16px 20px 24px; overflow-y: auto; flex: 1; }
 .drawer__body h4:first-child { margin-top: 0; }
@@ -113,7 +115,9 @@ body.drawer-open .drawer { transform: none; } body.drawer-open .scrim { opacity:
 
 /* ---- Toast y tooltip ---- */
 .toasts { position: fixed; z-index: 1200; left: 50%; bottom: 22px; transform: translateX(-50%); display: grid; gap: 8px; width: min(520px, calc(100% - 24px)); }
-.toast { background: var(--ink); color: #fff; padding: 11px 16px; border-left: 4px solid var(--gold); font-size: 13.5px; box-shadow: 0 6px 20px rgba(0,0,0,.25); transition: opacity .3s; } .toast.warn { border-left-color: #E36B5F; } .toast.out { opacity: 0; }
+.toast { background: var(--ink); color: #fff; padding: 11px 16px; border-left: 4px solid var(--gold); font-size: 13.5px; box-shadow: 0 6px 20px rgba(0,0,0,.25); animation: toast-in var(--dur-2, 240ms) var(--ease-out, cubic-bezier(.2, .8, .2, 1)) backwards; transition: opacity var(--dur-2, 240ms) var(--ease-io, ease), transform var(--dur-2, 240ms) var(--ease-io, ease); } .toast.warn { border-left-color: #E36B5F; } .toast.out { opacity: 0; transform: translateY(8px); }
+@keyframes toast-in { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .toast { animation: none; transition: none; } .drawer, .scrim { transition: none; } }
 .tip { position: fixed; z-index: 1300; display: none; pointer-events: none; background: var(--ink); color: #fff; padding: 7px 10px; font-size: 12.5px; max-width: 280px; } .tip__sub { color: #D9C48A; }
 
 /* ---- Gráficos ---- */
@@ -166,6 +170,7 @@ body.drawer-open .drawer { transform: none; } body.drawer-open .scrim { opacity:
 .denlist__row { width: 100%; display: grid; grid-template-columns: 56px minmax(0, 1fr) auto; gap: 12px; align-items: center; padding: 10px 2px; border: 0; background: none; text-align: left; } .denlist__row:hover { background: #F6F1E5; }
 .denlist__thumb { width: 56px; height: 56px; object-fit: cover; border: 1px solid var(--line); } .denlist__thumb--empty { display: grid; place-items: center; background: #ECE8DF; color: var(--ink-3); }
 .denlist__main { display: grid; min-width: 0; }
+.denlist__chips { display: grid; gap: 4px; justify-items: end; }
 
 /* ---- Datos ---- */
 .tags { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0; } .tag { font: 12px var(--f-mono); padding: 3px 8px; background: #EFE9DC; border: 1px solid var(--line); } .tag--muted { color: var(--ink-3); background: none; } .tag--btn { cursor: pointer; } .tag--btn:hover { background: var(--gold-soft); }

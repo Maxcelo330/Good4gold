@@ -52,7 +52,7 @@
       counter, el('span', { class: 'spacer' }), ui().button('Exportar ranking', { icon: 'descargar', onclick: exportar })));
 
     root.appendChild(el('div', { class: 'grid grid--scatter' },
-      ui().card('Riesgo y valor recuperable', [scatterHost, el('p', { class: 'muted small' }, 'Cada punto es un pasivo. Arriba a la derecha: riesgo y valor altos. Los umbrales se configuran en config.js.')]),
+      ui().card('Riesgo y valor recuperable', [scatterHost, el('p', { class: 'muted small' }, 'Cada punto es un pasivo. Arriba a la derecha: riesgo y valor altos. Los umbrales de riesgo y valor son ajustables.')]),
       ui().card('Cómo se calcula', el('div', { class: 'method' },
         el('p', null, el('strong', null, 'Riesgo (0–100): '), 'volumen, cercanía a ríos y a población, estado de la estructura, uso de mercurio y falta de un responsable legal.'),
         el('p', null, el('strong', null, 'Valor (índice 0–100): '), 'oro recuperable = volumen × densidad × ley × recuperación. Sin ley medida no se inventa: queda "sin dato" y se pide muestreo.'),

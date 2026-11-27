@@ -1,8 +1,26 @@
-# Registro y Control Minero — prototipo web
+# Aurum80 — minería responsable en Bolivia
 
-Aplicación de **verificación, control y reporte** para el desafío ORO-4.2 (Gold4Good 2026). Funciona abriendo `index.html`: no necesita servidor, instalación ni conexión (el mapa base sí usa internet; sin él se ven los puntos igual).
+Aplicación de **verificación, control y reporte** del equipo **Aurum80** para el desafío ORO-4.2 (Gold4Good Bolivia 2026). Funciona abriendo `index.html`: no necesita servidor, instalación ni conexión (el mapa base sí usa internet; sin él se ven los puntos igual).
 
 > **Los datos incluidos son simulados.** Los nombres y estados legales son inventados y no representan a ninguna cooperativa real. Una franja "DATOS SIMULADOS" lo recuerda en todo momento.
+
+## Novedades de la versión 0.7.0
+**Tres perfiles con inicio de sesión real** (el servidor valida el rol en cada acción): **autoridad** (`funcionario`), **cooperativa o empresa** (`operador`, ligada a su `operador_id`) y **técnico de campo** (`tecnico`).
+
+| Quién | Qué tiene |
+|---|---|
+| **Público** | Inicio con **Informaciones**, **Trámites para ser legal** (pasos, institución, documento y norma), **Programas** (piloto de biorremediación), mapa, consulta y denuncia desde el celular. |
+| **Cooperativa o empresa** | **Mi estado**: cada requisito en *Listo / En proceso / Faltante*, siguiente paso, e **inscripción a programas**. |
+| **Autoridad** | **Resumen** con 8 indicadores simples, **Denuncias recibidas** con **Aceptar y crear punto por verificar**, **Solicitudes** de programas, **Monitoreo** priorizado, **Zonas de riesgo** (mapa y tabla) y **Muestras**. |
+| **Técnico de campo** | App aparte **Aurum80 Campo** (`campo/`): toma de muestra colorimétrica de mercurio con foto y GPS, fichas de pasivos y operadores, y cola de envío sin conexión. Guarda en el mismo Google Sheet. |
+
+- **Novedades 0.7:** sección **Novedades** (noticias del sector con fuente y guías, con imágenes propias; los datos se editan en `js/data/novedades.js`), **animación de biorremediación** en Programas, y en Aurum80 Campo una **planilla tipo Excel** (Muestras y Pasivos, con pegado desde Excel, borrador local y envío sin conexión).
+- **Dos apps instalables** con logo propio: la principal (`/`) y Campo (`/campo/`). En el celular: abrir la dirección y usar *Instalar* (Android) o Compartir → Agregar a inicio (iPhone).
+- **Normas bolivianas** en `js/data/normativa.js`, cada una con fuente y fecha de verificación (2026-11-26). Lo que no se pudo comprobar se rotula **Referencial**. Es orientación, no asesoría legal.
+- **La prueba de campo no reemplaza al laboratorio**: sus cortes (5/20 ppb en agua, 50/170 ppb en lodo) no son límites legales; la norma boliviana permite 1 ppb. La calibración es teórica y está pendiente de validar con estándares.
+- **Backend ampliado** (`backend/Codigo.gs`): hojas `Muestras` e `Inscripciones`, roles validados en el servidor, `aceptarDenuncia` (denuncia a punto por verificar). Pruebas: `node backend/pruebas/probar_codigo.js` (246 comprobaciones). **Para actualizar un despliegue existente siga `backend/INSTRUCCIONES.md`** (pegar el código, ejecutar `configurar()` y crear una nueva versión).
+- **Cuentas demo** (en la hoja `Usuarios`, claves públicas en GitHub: cámbielas con datos reales): `Aurum80` (autoridad), `Campo80` (técnico) y `Coop80` (cooperativa).
+- **Hecho con agentes especializados** (`.claude/agents/`): diseñador UX, verificador normativo, backend y revisor de calidad.
 
 ## Qué hace
 **Ciudadanía** (pensado para quien quiere consultar o denunciar):

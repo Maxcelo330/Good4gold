@@ -59,6 +59,13 @@
     return { lat: (Math.min(...ys) + Math.max(...ys)) / 2, lng: (Math.min(...xs) + Math.max(...xs)) / 2 };
   }
 
+  /* Quita el mapa sin dejar pendiente una animación de zoom (si no, Leaflet falla al terminarla en un mapa ya quitado). */
+  function quitarMapa() {
+    if (!map) return;
+    try { map.stop(); map._animatingZoom = false; map.remove(); } catch (e) { /* ya no existe */ }
+    map = null; base = null; grupo = null; capas = new Map();
+  }
+
   /* Revisa un objeto GeoJSON. No lanza: devuelve { error } o el resultado. */
   function validar(obj) {
     if (!obj || typeof obj !== 'object' || obj.type !== 'FeatureCollection' || !Array.isArray(obj.features)) {
@@ -248,7 +255,7 @@
     if (!b.isValid()) return;
     map.invalidateSize();
     if (animar) map.flyToBounds(b, { padding: [40, 40], maxZoom: 15, duration: 0.8 });
-    else map.fitBounds(b, { padding: [40, 40], maxZoom: 15 });
+    else map.fitBounds(b, { padding: [40, 40], maxZoom: 15, animate: false });
   }
 
   /* ---------------- Selección y ficha ---------------- */
@@ -386,7 +393,7 @@
 
   function pintar() {
     if (!raiz) return;
-    if (map) { map.remove(); map = null; base = null; grupo = null; capas = new Map(); }
+    quitarMapa();
     U.clear(raiz);
     raiz.appendChild(botones());
     if (!datos) { raiz.appendChild(vacio()); return; }
@@ -398,7 +405,7 @@
     raiz.appendChild(el('div', { class: 'kpis kpis--3' },
       ui().kpi('Zonas', U.fmt(lista.length), 'por verificar'),
       ui().kpi('Hectáreas', U.fmt(ha, 1), 'suma de las áreas'),
-      el('div', { class: 'kpi kpi--fecha' }, el('div', { class: 'kpi__label' }, 'Archivo generado'), el('div', { class: 'kpi__value' }, gen ? U.fmtDate(gen) : '—'), el('div', { class: 'kpi__sub' }, datos.generado && datos.generado.length > 10 ? 'a las ' + datos.generado.slice(11, 16) : 'sin fecha en el archivo'))));
+      el('div', { class: 'kpi kpi--fecha' }, el('div', { class: 'kpi__label' }, 'Archivo generado'), el('div', { class: 'kpi__value' }, gen ? U.fmtDate(gen) : '—'), el('div', { class: 'kpi__sub' }, datos.generado && datos.generado.length > 10 ? 'a las ' + datos.generado.slice(11, 16) : (gen ? 'según el archivo cargado' : 'sin fecha en el archivo')))));
     raiz.appendChild(informeCarga());
 
     const mapaDiv = el('div', { class: 'zmap', role: 'application', 'aria-label': 'Mapa de las zonas revisadas. Toque una zona para ver su ficha.' });
@@ -433,7 +440,7 @@
   /* Al cerrar sesión no queda nada de las zonas en pantalla (la sección vuelve a construirse al ingresar). */
   G4G.bus.on('auth:changed', () => {
     if (G4G.auth.esFuncionario()) return;
-    if (map) { map.remove(); map = null; base = null; grupo = null; capas = new Map(); }
+    quitarMapa();
     listaHost = null; badge = null; seleccion = null;
     const m = G4G.app.modulos.find((x) => x.id === 'deteccion');
     if (m && m.seccion) { U.clear(m.seccion); m.construido = false; }
@@ -441,5 +448,5 @@
   });
 
   G4G.deteccion = { validar, cantidad: () => { try { const d = leerGuardado(); return d ? d.features.length : (window.G4G_ZONAS_REVISADAS && !validar(window.G4G_ZONAS_REVISADAS).error ? validar(window.G4G_ZONAS_REVISADAS).features.length : 0); } catch (e) { return 0; } }, clave: CLAVE };
-  G4G.app.register({ id: 'deteccion', titulo: 'Detecciones revisadas', icono: 'zona', orden: 15, grupo: 'tecnico', subtitulo: 'Zonas marcadas como posible actividad minera en imágenes satelitales, por verificar', render, onShow });
+  G4G.app.register({ id: 'deteccion', titulo: 'Detecciones revisadas', icono: 'zona', orden: 15, grupo: 'tecnico', subtitulo: 'Zonas marcadas en imágenes satelitales, por verificar', render, onShow });
 })();

@@ -26,7 +26,7 @@
       el('span', { class: 'op-card__name' }, o.nombre),
       el('span', { class: 'op-card__place' }, [o.municipio, o.departamento].filter(Boolean).join(', ') || 'Ubicación sin dato'),
       el('span', { class: 'op-card__req' }, el('span', { class: 'progress progress--sm' }, ui().meter(a.cumplidos, a.total), el('span', null, `${a.cumplidos}/${a.total}`)),
-        el('span', { class: 'op-card__reqtxt' }, a.faltan.length ? `Le falta: ${a.faltan.slice(0, 2).map((r) => r.label.toLowerCase()).join(', ')}${a.faltan.length > 2 ? '…' : ''}` : (a.sinDato.length ? 'Requisitos sin verificar' : 'Requisitos completos'))),
+        el('span', { class: 'op-card__reqtxt' }, a.faltan.length ? `Le falta: ${a.faltan.slice(0, 2).map((r) => r.label.charAt(0).toLowerCase() + r.label.slice(1)).join(', ')}${a.faltan.length > 2 ? '…' : ''}` : (a.sinDato.length ? 'Requisitos sin verificar' : 'Requisitos completos'))),
       el('span', { class: 'op-card__foot' }, G4G.detalle.frescura(o), el('span', { class: 'op-card__go' }, 'Ver ficha →')));
   }
 
@@ -85,7 +85,7 @@
 
     root.appendChild(el('div', { class: 'consult-head' },
       el('div', { class: 'search-big search-big--compact' }, el('span', { class: 'search-big__icon', 'aria-hidden': 'true' }, ui().icon('buscar', 20)),
-        el('input', { class: 'search-big__input', type: 'search', placeholder: 'Buscar por nombre, municipio o departamento…', value: f.q, 'aria-label': 'Buscar operador', oninput: U.debounce((e) => { f.q = e.target.value; pintar(); }, 150) })),
+        el('input', { class: 'search-big__input', type: 'search', placeholder: 'Buscar por nombre o municipio…', value: f.q, 'aria-label': 'Buscar una cooperativa o empresa por nombre, municipio o departamento', oninput: U.debounce((e) => { f.q = e.target.value; pintar(); }, 150) })),
       chips));
     root.appendChild(el('div', { class: 'toolbar' },
       el('select', { class: 'input', 'aria-label': 'Departamento', onchange: (e) => { f.depto = e.target.value; pintar(); } }, el('option', { value: '' }, 'Todos los departamentos'), deptos.map((d) => el('option', { value: d, selected: f.depto === d }, d))),

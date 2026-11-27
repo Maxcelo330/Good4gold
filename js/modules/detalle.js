@@ -35,7 +35,7 @@
     const estadoReq = { true: ['Cumple', 'ok'], false: ['Falta', 'bad'], null: ['Sin dato', 'unk'] };
 
     const body = el('div', null,
-      aviso('Vista de verificación. Esta ficha no modifica la base de datos.'),
+      aviso('Ficha de consulta: no modifica el registro.'),
       el('div', { class: 'row-gap' }, ui().estadoChip(op.estado_legal), frescura(op)),
       el('h4', null, 'Requisitos para operar'),
       el('div', { class: 'progress' }, ui().meter(av.cumplidos, av.total), el('span', null, `${av.cumplidos} de ${av.total} cumplidos`)),
@@ -68,7 +68,7 @@
     const usd = p.oroG == null ? null : p.oroG * G4G.config.puntaje.precioUsdG;
 
     const body = el('div', null,
-      aviso('Vista de verificación. Esta ficha no modifica la base de datos.'),
+      aviso('Ficha de consulta: no modifica el registro.'),
       el('div', { class: 'row-gap' }, ui().claseChip(p.clase)),
       el('p', { class: 'lead' }, el('strong', null, p.clase.label + '. '), p.clase.detalle),
       el('div', { class: 'scorepair' },

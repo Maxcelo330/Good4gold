@@ -1,0 +1,40 @@
+/* Ilustraciones, imágenes y estados vacíos.
+   Los SVG viven en img/ y son decorativos (alt vacío): la información nunca depende de ellos.
+   Prefijo il-. Todas se adaptan al ancho y no pasan del 40 % del alto de la pantalla. */
+.il { display: block; max-width: 100%; height: auto; }
+
+/* Portada: panorámica al pie de la tarjeta oscura, sin tapar el texto ni el buscador. */
+.il-hero { margin: 16px -18px -20px; pointer-events: none; }
+.il-hero__img { width: 100%; aspect-ratio: 960 / 260; min-height: 124px; max-height: 300px; object-fit: cover; object-position: 70% 100%; border-radius: 0 0 var(--radius) var(--radius); }
+@media (min-width: 600px) { .il-hero { margin: 18px -28px -26px; } }
+@media (min-width: 861px) {
+  /* Escritorio: se recorta el cielo vacío de la panorámica (se conservan sol y montañas) y se acorta la distancia al texto. */
+  .il-hero { margin: 4px -36px -30px; }
+  .il-hero__img { aspect-ratio: 960 / 214; min-height: 0; max-height: 230px; object-position: 70% 100%; -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 22px); mask-image: linear-gradient(to bottom, transparent 0, #000 22px); }
+}
+
+/* Encabezado con ilustración (Trámites, Programas): arriba en celular, a la derecha en pantallas anchas. */
+.il-intro { display: grid; gap: 12px; align-items: center; }
+.il-intro__img { order: -1; width: min(180px, 52%); max-height: 28vh; justify-self: center; object-fit: contain; }
+@media (min-width: 600px) {
+  .il-intro { grid-template-columns: minmax(0, 1fr) auto; gap: 24px; }
+  .il-intro__img { order: 0; width: 210px; max-height: none; }
+}
+
+/* Ingresar y Mi estado */
+.il-login { width: min(190px, 56%); max-height: 24vh; object-fit: contain; margin: 0 0 6px -6px; }
+.il-resumen { width: 120px; max-height: 14vh; object-fit: contain; margin: -4px 0 -2px -6px; }   /* el resumen es una cuadrícula: va como primera fila */
+
+/* Denunciar: paso 1 y pantalla de éxito */
+.il-paso { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.il-paso > .step-q { flex: 1 1 auto; min-width: 0; }
+.il-paso__img { flex: 0 0 auto; width: 104px; max-height: 14vh; object-fit: contain; }
+.il-exito { width: min(200px, 62%); max-height: 26vh; object-fit: contain; margin: 0 auto 6px; }
+
+/* Estados vacíos: ilustración suave y mensaje */
+.il-vacio { display: grid; justify-items: center; gap: 8px; }
+.il-vacio__img { width: min(200px, 62%); max-height: 26vh; object-fit: contain; opacity: .95; }
+.il-vacio__txt { margin: 0; max-width: 46ch; }
+
+/* App de campo: resultado de la muestra */
+.il-campo { width: min(190px, 56%); max-height: 22vh; object-fit: contain; margin: 0 auto; }

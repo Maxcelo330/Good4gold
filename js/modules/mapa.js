@@ -149,10 +149,11 @@
     if (!refs || !refs.sync) return;
     const c = G4G.store.state.conexion;
     const hora = c.ultima ? new Date(c.ultima).toLocaleTimeString('es-BO', { hour: '2-digit', minute: '2-digit' }) : '';
+    const hora24 = c.ultima ? new Date(c.ultima).toLocaleTimeString('es-BO', { hour: '2-digit', minute: '2-digit', hour12: false }) : '';
     /* [texto completo, texto corto para celular] */
     const [txt, corto] = c.modo === 'demo' ? ['Modo demostración · solo este dispositivo', 'Demostración · este dispositivo']
-      : c.modo === 'linea' ? ['En línea con la base · ' + hora, 'En línea · ' + hora]
-      : c.modo === 'sin-red' ? ['Sin conexión con la base' + (hora ? ' · datos de ' + hora : ''), 'Sin conexión' + (hora ? ' · ' + hora : '')] : ['Conectando con la base…', 'Conectando…'];
+      : c.modo === 'linea' ? ['En línea con la base · ' + hora, 'En línea · ' + hora24]
+      : c.modo === 'sin-red' ? ['Sin conexión con la base' + (hora ? ' · datos de ' + hora : ''), 'Sin conexión' + (hora24 ? ' · ' + hora24 : '')] : ['Conectando con la base…', 'Conectando…'];
     U.clear(refs.sync);
     refs.sync.className = 'map-sync map-sync--' + c.modo;
     refs.sync.title = c.modo === 'demo' ? 'No hay base en línea: las denuncias de este mapa son solo las hechas en este dispositivo.' : 'Las denuncias se actualizan solas cada minuto.';
@@ -258,7 +259,7 @@
     }, c.nombre)));
 
     const body = el('div', { class: 'mappanel__body' },
-      G4G.inicio.buscador({ compacto: true, placeholder: 'Buscar operación o municipio…', onElegir: volarA }),
+      G4G.inicio.buscador({ compacto: true, placeholder: 'Buscar operación…', ariaLabel: 'Buscar una operación minera por nombre o municipio', onElegir: volarA }),
       el('div', { class: 'mappanel__title' }, 'Mostrar'),
       el('div', { class: 'layer-chips' },
         S.estadosEnMapa().map(([k, e]) => chip(k, ui().shapeSvg(e.forma, e.color, 13), e.label, cs[k] || 0)),
@@ -282,7 +283,7 @@
 
   function render(root) {
     const host = el('div', { class: 'mapview' });
-    const mapDiv = el('div', { class: 'mapview__map', role: 'application', 'aria-label': 'Mapa de operaciones mineras. Toque un punto para ver qué hay cerca.' });
+    const mapDiv = el('div', { class: 'mapview__map', role: 'application', 'aria-label': 'Mapa de operaciones mineras. Toca un punto para ver qué hay cerca.' });
     const badge = el('div', { class: 'mapbadge', hidden: true }, 'Sin conexión: el mapa base no está disponible. Los puntos se muestran igual.');
     const locBtn = el('button', { type: 'button', class: 'map-fab', title: 'Mi ubicación', 'aria-label': 'Centrar en mi ubicación', onclick: (e) => miUbicacion(e.currentTarget) }, ui().icon('gps', 20));
     const repBtn = el('button', { type: 'button', class: 'map-fab map-fab--wide', onclick: () => G4G.app.go('denuncias') }, ui().icon('denuncias', 18), 'Denunciar');
@@ -335,5 +336,5 @@
   }
 
   G4G.mapaApi = { obtener: () => map };
-  G4G.app.register({ id: 'mapa', titulo: 'Mapa', icono: 'mapa', orden: 1, grupo: 'ciudadania', subtitulo: 'Toca cualquier punto para ver qué operaciones hay cerca o denunciar ahí', persistent: true, full: true, render, update, onShow });
+  G4G.app.register({ id: 'mapa', titulo: 'Mapa', icono: 'mapa', orden: 1, grupo: 'ciudadania', movil: ['publico', 'operador', 'funcionario'], subtitulo: 'Toca cualquier punto para ver qué operaciones hay cerca o denunciar ahí', persistent: true, full: true, render, update, onShow });
 })();

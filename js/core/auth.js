@@ -18,11 +18,17 @@
   if (sesion && !!sesion.usuario.demo === G4G.api.activo()) sesion = null;
 
   const guardar = () => { try { if (sesion) sessionStorage.setItem(K, JSON.stringify(sesion)); else sessionStorage.removeItem(K); } catch (e) { /* sin persistencia */ } };
-  const esFuncionario = () => !!sesion;
+  /* Roles: 'funcionario' (autoridad: ve y gestiona todo), 'tecnico' (app de campo: registra muestras y fichas),
+     'operador' (cooperativa o empresa: ve y gestiona SU estado). Sin sesión es público. */
+  const rol = () => (sesion && sesion.usuario && sesion.usuario.rol) || 'publico';
+  const esFuncionario = () => rol() === 'funcionario';
+  const esTecnico = () => rol() === 'tecnico';
+  const esOperador = () => rol() === 'operador';
+  const esCampo = () => esFuncionario() || esTecnico();   // quienes pueden registrar datos de campo
 
   async function ingresar(usuario, clave) {
     usuario = String(usuario || '').trim();
-    if (!usuario || !clave) throw new Error('Escriba su usuario y su clave.');
+    if (!usuario || !clave) throw new Error('Escribe tu usuario y tu clave.');
     if (G4G.api.activo()) {
       const r = await G4G.api.login(usuario, clave);
       sesion = { token: r.token, usuario: r.usuario, exp: Date.now() + (r.expiraEnS || 21600) * 1000 };
@@ -46,10 +52,11 @@
   }
 
   /* El servidor avisó que la sesión ya no vale. */
-  function vencida() { if (sesion) { salir('vencida'); G4G.ui && G4G.ui.toast('Su sesión venció. Vuelva a ingresar.', 'warn'); } }
+  function vencida() { if (sesion) { salir('vencida'); G4G.ui && G4G.ui.toast('Tu sesión venció. Vuelve a ingresar.', 'warn'); } }
 
   G4G.auth = {
-    esFuncionario, ingresar, salir, vencida,
+    rol, esFuncionario, esTecnico, esOperador, esCampo, ingresar, salir, vencida,
+    operadorId: () => (sesion && sesion.usuario && sesion.usuario.operador_id) || '',
     usuario: () => (sesion ? sesion.usuario : null),
     token: () => (sesion ? sesion.token : null),
     esDemo: () => !!(sesion && sesion.usuario.demo)

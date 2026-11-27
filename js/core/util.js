@@ -19,7 +19,7 @@
         else if (k === 'html') node.innerHTML = v;
         else if (k === 'dataset') Object.assign(node.dataset, v);
         else if (k.startsWith('on') && typeof v === 'function') node.addEventListener(k.slice(2), v);
-        else if (k === 'style' && typeof v === 'object') Object.assign(node.style, v);
+        else if (k === 'style' && typeof v === 'object') Object.entries(v).forEach(([pk, pv]) => (pk.startsWith('--') ? node.style.setProperty(pk, pv) : (node.style[pk] = pv)));
         else node.setAttribute(k, v === true ? '' : v);
       }
     }

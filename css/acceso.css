@@ -48,7 +48,7 @@
 /* ---- Ingresar ---- */
 .login { display: grid; grid-template-columns: minmax(0, 460px) minmax(0, 340px); gap: 24px; align-items: start; justify-content: center; padding-top: 12px; }
 .login__card .card__body { padding: 26px 26px 22px; }
-.login__kicker { font: 700 12px var(--f-cond); letter-spacing: .12em; text-transform: uppercase; color: var(--gold); margin-bottom: 6px; }
+.login__kicker { font: 700 12px var(--f-cond); letter-spacing: .12em; text-transform: uppercase; color: var(--value); margin-bottom: 6px; }
 .login__title { font: 700 24px/1.2 var(--f-serif); margin-bottom: 8px; }
 .login__form { margin-top: 16px; }
 .login__form .input { min-height: 44px; font-size: 16px; }   /* 16 px evita el zoom automático en iPhone */
@@ -65,7 +65,7 @@
 .reg__item:hover { background: var(--line-2); }
 .reg__item.is-on { background: var(--gold-soft); box-shadow: inset 3px 0 0 var(--gold); }
 .reg__set { border: 0; padding: 0; margin: 0 0 14px; }
-.reg__set legend { font: 700 13px var(--f-cond); letter-spacing: .08em; text-transform: uppercase; color: var(--gold); padding: 0; margin-bottom: 8px; }
+.reg__set legend { font: 700 13px var(--f-cond); letter-spacing: .08em; text-transform: uppercase; color: var(--value); padding: 0; margin-bottom: 8px; }
 .reg__grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); column-gap: 14px; }
 .reg__form .input { min-height: 40px; }
 @media (max-width: 860px) {

@@ -1,0 +1,177 @@
+/* ==========================================================================
+   Animación del proceso de biorremediación (módulo Programas, sección "Así funciona").
+   Solo se animan transform, opacity y stroke-dashoffset. El estado base de cada pieza es
+   su estado final: con movimiento reducido (o con la animación detenida) se ve la etapa
+   completa y estática. El JS (programas.js) solo cambia clases: .is-act / .is-done en los
+   elementos con data-s, .is-frozen / .is-off en la raíz, y --cam-x en la cámara.
+   ========================================================================== */
+.an {
+  --an-agua: #4B8FB5; --an-oro: #D9A431; --an-oro-2: #B07D14; --an-verde: #2E7D4F; --an-papel: #F3EFE7; --an-tinta: #1D1B18;
+  background: var(--surface, #FCFAF6); border: 1px solid var(--line, #DCD5C7); border-radius: 14px; padding: 14px;
+  display: grid; gap: 12px; min-width: 0; box-shadow: var(--shadow-soft, 0 1px 2px rgba(0, 0, 0, .06));
+}
+.an__cab { display: grid; gap: 4px; }
+.an__cab h3 { display: flex; align-items: center; gap: 10px; font: 700 13px var(--f-cond); }
+.an__cab p { margin: 0; color: var(--ink-2); font-size: 15px; line-height: 1.55; }
+.an__tri { display: inline-flex; gap: 4px; align-items: center; }
+.an__tri i { width: 6px; height: 6px; border-radius: 50%; display: block; }
+.an__tri i:nth-child(1) { background: var(--bo-rojo, #D52B1E); }
+.an__tri i:nth-child(2) { background: var(--bo-amarillo, #F2C300); }
+.an__tri i:nth-child(3) { background: var(--bo-verde, #007934); }
+
+.an__cuerpo { display: grid; gap: 12px; min-width: 0; }
+.an__izq, .an__der { display: grid; gap: 10px; min-width: 0; align-content: start; }
+
+/* ---- Escena ---- */
+.an__vista { border-radius: 12px; overflow: hidden; border: 1px solid var(--line, #DCD5C7); background: #E9EEE6; aspect-ratio: 6 / 5; position: relative; }
+.an__svg { display: block; width: 100%; height: 100%; }
+.an__cam { transform: translateX(var(--cam-x, 0px)); transition: transform .9s cubic-bezier(.4, 0, .2, 1); }
+.an__svg * { transform-box: fill-box; }
+
+.an [data-s] { opacity: .3; transition: opacity .6s ease; }
+.an [data-s].is-done { opacity: .62; }
+.an [data-s].is-act { opacity: 1; }
+.an g.an__bad[data-s] { opacity: 1; }
+.an__bad circle { fill: #FCFAF6; stroke: #8E887B; stroke-width: 1.6; transition: fill .4s ease, stroke .4s ease; }
+.an__bad text { font: 700 15px var(--f-cond, sans-serif); fill: #4F4B43; text-anchor: middle; dominant-baseline: central; }
+.an__bad.is-done circle { fill: #E1F0E6; stroke: var(--an-verde); }
+.an__bad.is-act circle { fill: var(--an-oro); stroke: var(--an-tinta); stroke-width: 2; }
+.an__bad.is-act text { fill: var(--an-tinta); }
+
+/* Tuberías: estructura fija + trazo punteado que avanza */
+.an__flujo { stroke-dasharray: 4 9; stroke-dashoffset: 0; fill: none; stroke-linecap: round; }
+.an [data-s].is-act .an__flujo { animation: an-fluir .9s linear infinite; }
+.an__napa { animation: an-fluir 3.4s linear infinite reverse; }
+
+/* ---- Etapa 1: sitio y muestras ---- */
+.an__z.is-act .an__sonda { animation: an-sonda 6.4s ease-in-out infinite; }
+.an__z.is-act .an__anillo { animation: an-anillo 2.6s ease-out infinite; }
+.an__anillo { transform-origin: 50% 50%; }
+.an__rel { transform-origin: 50% 100%; }
+.an__z.is-act .an__rel { animation: an-rellenar 6.4s ease-in-out infinite; }
+
+/* ---- Etapa 2: preparar ---- */
+.an__z.is-act .an__grano { animation: an-vibrar .7s ease-in-out infinite alternate; animation-delay: var(--dl, 0s); }
+.an__z.is-act .an__oro { animation: an-oro 1.7s ease-in infinite; animation-delay: var(--dl, 0s); }
+.an__oro { opacity: .9; }
+.an__pila { transform-origin: 50% 100%; }
+.an__z.is-act .an__pila { animation: an-pila 6s ease-out both; }
+
+/* ---- Etapa 3: tratamiento biológico ---- */
+.an__pt-o { opacity: .9; } .an__pt-c { opacity: 0; }
+.an__pt--claro .an__pt-o { opacity: 0; } .an__pt--claro .an__pt-c { opacity: 1; }
+.an__turbia { opacity: .3; }
+.an__burbuja { opacity: .7; }
+.an__z.is-act .an__pt { animation: an-flotar 3.2s ease-in-out infinite alternate; animation-delay: var(--dl, 0s); }
+.an__z.is-act .an__pt-o { animation: an-oscuro 5.2s ease-in-out both; animation-delay: var(--dl, 0s); }
+.an__z.is-act .an__pt-c { animation: an-claro 5.2s ease-in-out both; animation-delay: var(--dl, 0s); }
+.an__z.is-act .an__turbia { animation: an-turbia 5.4s ease-in-out both; }
+.an__z.is-act .an__burbuja { animation: an-burbuja 2.3s ease-in infinite; animation-delay: var(--dl, 0s); }
+.an__z.is-act .an__microbio { animation: an-microbio 2.7s ease-in-out infinite; animation-delay: var(--dl, 0s); }
+.an__planta { transform-origin: 50% 100%; }
+.an [data-s].is-act .an__planta { animation: an-crecer 3.4s cubic-bezier(.2, .8, .2, 1) both; animation-delay: var(--dl, 0s); }
+.an__raiz { stroke-dasharray: 100; stroke-dashoffset: 0; }
+.an [data-s].is-act .an__raiz { animation: an-raiz 3.8s ease-out both; animation-delay: var(--dl, 0s); }
+
+/* ---- Etapa 4: control ---- */
+.an__aguja { transform-box: view-box; transform-origin: 548px 204px; transform: rotate(18deg); }
+.an__z.is-act .an__aguja { animation: an-aguja 3.4s ease-out both; }
+.an__luz { opacity: 1; }
+.an__z.is-act .an__luz { animation: an-luz 3.2s ease-in-out infinite alternate; }
+.an__z.is-act .an__sonda2 { animation: an-bajar 2.6s ease-in-out infinite alternate; }
+.an__onda { opacity: .5; transform-origin: 50% 50%; }
+.an__z.is-act .an__onda { animation: an-onda 2.6s ease-out infinite; animation-delay: var(--dl, 0s); }
+
+/* ---- Etapa 5: cierre y seguimiento ---- */
+.an__banderin { transform-origin: 0% 50%; }
+.an__z.is-act .an__banderin { animation: an-ondear 2.8s ease-in-out infinite alternate; }
+.an__ciclo { transform-origin: 50% 50%; }
+.an__z.is-act .an__ciclo { animation: an-girar 16s linear infinite; }
+.an__rayos { transform-origin: 50% 50%; }
+.an__z.is-act .an__rayos { animation: an-girar 40s linear infinite; }
+.an__nube { animation: an-nube 26s ease-in-out infinite alternate; }
+
+/* Detenido (botón Pausar) o fuera de pantalla: se congela el cuadro actual */
+.an.is-frozen .an__svg *, .an.is-off .an__svg * { animation-play-state: paused !important; }
+
+@keyframes an-fluir { to { stroke-dashoffset: -26; } }
+@keyframes an-sonda { 0% { transform: translateY(-46px); opacity: 0; } 14% { opacity: 1; } 30%, 62% { transform: translateY(0); opacity: 1; } 82%, 100% { transform: translateY(-46px); opacity: 0; } }
+@keyframes an-anillo { 0% { transform: scale(.9); opacity: 0; } 25% { opacity: .85; } 100% { transform: scale(1.08); opacity: 0; } }
+@keyframes an-rellenar { 0%, 25% { transform: scaleY(.12); } 65%, 100% { transform: scaleY(1); } }
+@keyframes an-vibrar { from { transform: translateY(0); } to { transform: translateY(-3px); } }
+@keyframes an-oro { 0% { transform: translateY(0); opacity: 0; } 15% { opacity: 1; } 100% { transform: translateY(24px); opacity: 0; } }
+@keyframes an-pila { from { transform: scaleY(.25); } to { transform: scaleY(1); } }
+@keyframes an-flotar { from { transform: translateY(0); } to { transform: translateY(-6px); } }
+@keyframes an-oscuro { from { opacity: .95; } 100% { opacity: 0; } }
+@keyframes an-claro { from { opacity: 0; } 100% { opacity: 1; } }
+@keyframes an-turbia { from { opacity: .75; } to { opacity: .16; } }
+@keyframes an-burbuja { 0% { transform: translateY(0); opacity: 0; } 15% { opacity: .85; } 100% { transform: translateY(-58px); opacity: 0; } }
+@keyframes an-microbio { 0%, 100% { transform: translate(0, 0) rotate(-18deg); } 50% { transform: translate(6px, -3px) rotate(18deg); } }
+@keyframes an-crecer { from { transform: scaleY(.1); opacity: 0; } 18% { opacity: 1; } to { transform: scaleY(1); opacity: 1; } }
+@keyframes an-raiz { from { stroke-dashoffset: 100; } to { stroke-dashoffset: 0; } }
+@keyframes an-aguja { 0% { transform: rotate(-72deg); } 42% { transform: rotate(34deg); } 62% { transform: rotate(8deg); } 80% { transform: rotate(24deg); } 100% { transform: rotate(18deg); } }
+@keyframes an-luz { from { opacity: .5; } to { opacity: 1; } }
+@keyframes an-bajar { from { transform: translateY(0); } to { transform: translateY(5px); } }
+@keyframes an-onda { 0% { transform: scale(.5); opacity: 0; } 25% { opacity: .8; } 100% { transform: scale(2.6); opacity: 0; } }
+@keyframes an-ondear { from { transform: rotate(-4deg); } to { transform: rotate(4deg); } }
+@keyframes an-girar { to { transform: rotate(360deg); } }
+@keyframes an-nube { from { transform: translateX(0); } to { transform: translateX(46px); } }
+
+/* ---- Progreso, etapas y controles ---- */
+.an__prog { display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; }
+.an__seg { height: 6px; border-radius: 6px; background: var(--line-2, #EBE5D9); overflow: hidden; display: block; }
+.an__seg i { display: block; height: 100%; width: 100%; background: linear-gradient(90deg, var(--an-oro-2), var(--an-oro)); transform-origin: 0 50%; transform: scaleX(0); }
+
+.an__etapas { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 6px; }
+.an .an__etapa { min-height: 56px; padding: 6px 2px; flex-direction: column; gap: 3px; border-radius: 12px; border: 1px solid var(--line, #DCD5C7); background: var(--paper, #F3EFE7); color: var(--ink-2, #4F4B43); font-weight: 600; font-size: 11.5px; line-height: 1.15; text-align: center; display: flex; align-items: center; justify-content: center; }
+.an__etapa .an__n { width: 24px; height: 24px; border-radius: 50%; display: grid; place-items: center; font: 700 13px var(--f-cond); background: #fff; border: 1px solid #B9B2A4; color: var(--ink); }
+.an__etapa:hover { background: #EFE9DC; }
+.an__etapa.is-done .an__n { background: #E1F0E6; border-color: var(--an-verde); }
+.an__etapa[aria-current="step"] { background: var(--surface, #FCFAF6); border-color: var(--ink); box-shadow: inset 0 -3px 0 0 var(--an-oro); color: var(--ink); }
+.an__etapa[aria-current="step"] .an__n { background: var(--an-oro); border-color: var(--ink); }
+
+.an__texto { display: grid; gap: 6px; align-content: start; min-height: 11rem; }
+.an__tag { margin: 0; font: 700 12px var(--f-cond); letter-spacing: .06em; text-transform: uppercase; color: #6A4300; }
+.an__titulo { margin: 0; font: 700 18px/1.25 var(--f-serif); color: var(--ink); }
+.an__desc { margin: 0; font-size: 15px; line-height: 1.6; color: var(--ink-2); }
+
+.an__ctrl { display: grid; grid-template-columns: 56px minmax(0, 1fr) 56px; gap: 8px; }
+.an__ctrl .an__play { grid-column: 2; grid-row: 1; }
+.an__ctrl .an__play[hidden] { display: none; }
+.an__ctrl > .btn:nth-child(2) { grid-column: 1; grid-row: 1; }
+.an__ctrl > .btn:nth-child(3) { grid-column: 3; grid-row: 1; }
+.an__ctrl.is-rm { grid-template-columns: 1fr 1fr; }
+.an__ctrl.is-rm > .btn:nth-child(3) { grid-column: 2; }
+.an__bt { display: none; }
+.an__ctrl.is-rm .an__bt { display: inline; }
+/* Celular: los bloques se reordenan (escena, progreso, controles, texto, etapas, notas) */
+.an__izq, .an__der { display: contents; }
+.an__vista { order: 1; } .an__prog { order: 2; } .an__ctrl { order: 3; } .an__texto { order: 4; } .an__etapas { order: 5; } .an__aviso { order: 6; } .an__nota { order: 7; }
+.an .an__ctrl .btn { padding: 10px 8px; gap: 6px; }
+.an__aviso { margin: 0; font-size: 13px; color: var(--ink-3); }
+.an__nota { display: flex; gap: 8px; align-items: flex-start; margin: 0; padding: 10px 12px; font-size: 13px; line-height: 1.5; color: var(--ink-2); background: #FBEFD0; border: 1px solid #E2C777; border-radius: 10px; }
+.an__nota svg { flex: none; margin-top: 2px; }
+
+@media (min-width: 520px) {
+  .an__ctrl { grid-template-columns: minmax(0, 1fr) minmax(0, 1.5fr) minmax(0, 1fr); }
+  .an__bt { display: inline; }
+}
+@media (min-width: 640px) {
+  .an__vista { aspect-ratio: 720 / 350; }
+  .an__texto { min-height: 11rem; }
+}
+@media (min-width: 900px) {
+  .an { padding: 20px; gap: 16px; }
+  .an__cuerpo { grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr); gap: 22px; align-items: start; }
+  .an__izq, .an__der { display: grid; }
+  .an__izq > *, .an__der > * { order: 0; }
+  .an__ctrl { order: 1; } .an__texto { order: 0; } .an__nota { order: 3; } .an__aviso { order: 2; }
+  .an .an__etapa { font-size: 12.5px; }
+}
+
+/* Movimiento reducido: ninguna animación corre; se ve la etapa estática y se avanza con los botones */
+@media (prefers-reduced-motion: reduce) {
+  .an__svg *, .an__svg { animation: none !important; transition: none !important; }
+  .an__cam { transition: none; }
+  .an [data-s], .an__bad circle { transition: none; }
+}

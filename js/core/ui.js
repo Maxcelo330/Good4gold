@@ -27,8 +27,20 @@
     mas:        'M12 5v14M5 12h14',
     buzon:      'M3 13h5l1.5 3h5L16 13h5M3 13l3-8h12l3 8v6H3z',
     zona:       'M4 9l5-5 9 3 3 8-6 6-9-2zM12 12h.01',
-    actualizar: 'M20 12a8 8 0 1 1-2.5-5.8M20 4v5h-5'
-  };
+    actualizar: 'M20 12a8 8 0 1 1-2.5-5.8M20 4v5h-5',
+    tramites:   'M6 3h9l4 4v14H6zM14 3v5h5M9 13h7M9 17h7',
+    programas:  'M5 19c0-8 5-14 14-14 0 9-6 14-14 14zM5 19c3-4 6-6 9-8',
+    muestras:   'M9 3h6M10 3v6L5 19a1 1 0 0 0 .9 1.5h12.2A1 1 0 0 0 19 19l-5-10V3M8 14h8',
+    riesgos:    'M12 3 3 8v6c0 4 4 6.5 9 7.5 5-1 9-3.5 9-7.5V8zM12 9v5M12 17h.01',
+    solicitudes:'M5 4h14v16H5zM9 9h6M9 13h6M9 17h3',
+    monitoreo:  'M3 12s3.5-7 9-7 9 7 9 7-3.5 7-9 7-9-7-9-7zM12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z',
+    miestado:   'M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18zM8 12l3 3 5-6',
+    menu:       'M4 7h16M4 12h16M4 17h16',
+    info:       'M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18zM12 11v6M12 7.5h.01',
+    ubicacion:  'M12 21s7-6.2 7-11.5A7 7 0 0 0 5 9.5C5 14.8 12 21 12 21zM12 12a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5z',
+    camara:     'M4 8h3l2-3h6l2 3h3v11H4zM12 17a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7z',
+    enviar:     'M4 12 20 4l-4 16-4-6zM12 14l8-10',
+    novedades:  'M4 5h13v13a2 2 0 0 0 2 2H6a2 2 0 0 1-2-2zM17 9h3v9a2 2 0 0 1-2 2M7.5 9h6M7.5 12.5h6M7.5 16h3.5'  };
   function icon(name, size = 18) {
     return svg('svg', { viewBox: '0 0 24 24', width: size, height: size, fill: 'none', stroke: 'currentColor', 'stroke-width': 1.7, 'stroke-linecap': 'round', 'stroke-linejoin': 'round', 'aria-hidden': 'true' }, svg('path', { d: ICONOS[name] || '' }));
   }
@@ -77,7 +89,21 @@
       (title || actions) ? el('header', { class: 'card__head' }, el('h3', null, title), actions ? el('div', { class: 'card__actions' }, actions) : null) : null,
       el('div', { class: 'card__body' }, body));
   }
-  const empty = (msg) => el('div', { class: 'empty' }, msg);
+  /* Un mensaje que empieza con "Cargando" lleva el brillo de esqueleto (css/motion.css) y se anuncia como estado. */
+  const empty = (msg) => (/^Cargando/i.test(String(msg))
+    ? el('div', { class: 'empty empty--loading', role: 'status', 'aria-busy': 'true' }, msg)
+    : el('div', { class: 'empty' }, msg));
+  /* n líneas de esqueleto para mientras llegan los datos: ui.skeleton(3). */
+  const skeleton = (n = 3) => el('div', { class: 'skeletons', 'aria-hidden': 'true' }, Array.from({ length: n }, () => el('span', { class: 'skeleton skeleton--line' })));
+  /* Vibración corta al tocar o confirmar. Solo con soporte, tras un toque real y sin movimiento reducido. */
+  function haptico(ms) {
+    try {
+      if (!navigator.vibrate) return;
+      if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+      if (navigator.userActivation && !navigator.userActivation.hasBeenActive) return;
+      navigator.vibrate(ms || 8);
+    } catch (e) { /* sin vibración */ }
+  }
 
   function button(label, opts = {}) {
     return el('button', { type: 'button', class: 'btn ' + (opts.kind ? 'btn--' + opts.kind : ''), onclick: opts.onclick, disabled: opts.disabled, title: opts.title },
@@ -178,5 +204,5 @@
     return el('dl', { class: 'dl' }, pairs.filter(Boolean).map(([k, v]) => [el('dt', null, k), el('dd', null, v === null || v === undefined || v === '' ? '—' : v)]));
   }
 
-  G4G.ui = { icon, shapeSvg, puntosHexagono, estadoChip, claseChip, estadoDenunciaChip, meter, kpi, card, empty, button, table, drawer: { init: drawerInit, open: drawerOpen, close: drawerClose }, toast, tip, field, dl };
+  G4G.ui = { icon, shapeSvg, puntosHexagono, estadoChip, claseChip, estadoDenunciaChip, meter, kpi, card, empty, button, table, drawer: { init: drawerInit, open: drawerOpen, close: drawerClose }, toast, tip, field, dl, skeleton, haptico };
 })();

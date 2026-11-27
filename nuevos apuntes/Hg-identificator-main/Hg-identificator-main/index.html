@@ -1,0 +1,1391 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#1F1D1A" />
+  <meta name="description" content="HgSense AgNPs — Colorimetría portátil de Hg²⁺ y CH₃Hg⁺, Matriz de Riesgos 3×3, Matriz de Oportunidad de Oro Residual en Colas y Programa de Biorremediación con Tecnologías Limpias (Reto 4.2)." />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="HgSense AgNPs" />
+  <title>HgSense AgNPs — Monitoreo, Oro Residual y Biorremediación</title>
+
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='6' fill='%231F1D1A'/%3E%3Crect x='8' y='8' width='48' height='48' rx='3' fill='%23B07D14'/%3E%3Ctext x='32' y='41' text-anchor='middle' font-family='sans-serif' font-weight='700' font-size='26' fill='%231F1D1A'%3EHg%3C/text%3E%3C/svg%3E" />
+  <link rel="manifest" href="data:application/manifest+json,%7B%22name%22%3A%22HgSense%20AgNPs%22%2C%22short_name%22%3A%22HgSense%22%2C%22start_url%22%3A%22.%2F%22%2C%22display%22%3A%22standalone%22%2C%22background_color%22%3A%22%23F3EFE7%22%2C%22theme_color%22%3A%22%231F1D1A%22%7D" />
+
+  <link rel="stylesheet" href="styles.css?v=4" />
+</head>
+<body>
+  <a class="skip" href="#mainContent">Saltar al contenido principal</a>
+
+  <div class="app">
+    <!-- ==================== NAVEGACIÓN PRINCIPAL ==================== -->
+    <aside class="side" aria-label="Navegación principal">
+      <div class="brand">
+        <div class="brand__mark" aria-hidden="true">Hg</div>
+        <div>
+          <div class="brand__name">HgSense AgNPs</div>
+          <div class="brand__tag">Detección + Oro + Biorremediación</div>
+        </div>
+      </div>
+
+      <nav class="nav">
+        <a href="#medicion" class="is-active" data-view="measure" id="navMeasure">
+          <svg viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M7 2a1 1 0 00-.707 1.707L7 4.414v3.758a1 1 0 01-.293.707l-4 4C.817 14.769 2.156 18 4.828 18h10.343c2.673 0 4.012-3.231 2.122-5.121l-4-4A1 1 0 0113 8.172V4.414l.707-.707A1 1 0 0013 2H7zm2 6.172V4h2v4.172a3 3 0 00.879 2.12l1.027 1.028a4 4 0 00-2.171.102l-.47.156a4 4 0 01-2.53 0l-.563-.187a1.993 1.993 0 00-.114-.035l1.063-1.063A3 3 0 009 8.172z" clip-rule="evenodd"/></svg>
+          <span>Medición</span>
+        </a>
+        <a href="#matrices" data-view="risks" id="navRisks">
+          <svg viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path d="M5 3a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2V5a2 2 0 00-2-2H5zM5 11a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2v-2a2 2 0 00-2-2H5zM11 5a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V5zM11 13a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg>
+          <span>Matrices 3×3</span>
+        </a>
+        <a href="#prioritarios" data-view="priorities" id="navPriorities">
+          <svg viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M3 3a1 1 0 000 2v8a2 2 0 002 2h2.586l-1.293 1.293a1 1 0 101.414 1.414L10 15.414l2.293 2.293a1 1 0 001.414-1.414L12.414 15H15a2 2 0 002-2V5a1 1 0 100-2H3zm11 4a1 1 0 10-2 0v4a1 1 0 102 0V7zm-3 1a1 1 0 10-2 0v3a1 1 0 102 0V8zM8 9a1 1 0 00-2 0v2a1 1 0 102 0V9z" clip-rule="evenodd"/></svg>
+          <span>Prioritarios</span>
+          <span class="nav-count" id="sitesCountBadge">4</span>
+        </a>
+        <a href="#biorremediacion" data-view="biorem" id="navBiorem">
+          <svg viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M11.3 1.046A1 1 0 0112 2v5h4a1 1 0 01.82 1.573l-7 10A1 1 0 018 18v-5H4a1 1 0 01-.82-1.573l7-10a1 1 0 011.12-.38z" clip-rule="evenodd"/></svg>
+          <span>Biorremediación</span>
+          <span class="nav-count nav-count--ok" id="affCountBadge">0</span>
+        </a>
+      </nav>
+
+      <div class="side__foot">
+        <span class="readonly">● Offline • Sin Backend</span>
+        <span>NB 512 / Ley 1333 RMCH / CCME</span>
+        <span>Reto 4.2 · Consorcio mer + Oro Au</span>
+      </div>
+    </aside>
+
+    <!-- ==================== ESCENARIO PRINCIPAL ==================== -->
+    <div class="stage">
+      <header class="topbar">
+        <div>
+          <h1 id="topbarTitle">Medición Guiada — Zona y AgNPs</h1>
+          <p class="topbar__sub" id="topbarSub">Foto de Zona y Volumen → Nivel 1 Hg²⁺ (5 min) → Nivel 2 UV-C CH₃Hg⁺ (+5–8 min) → Valor Oro Residual.</p>
+        </div>
+        <div class="topbar__right">
+          <span class="origin origin--matrix" id="headerMatrixPill">Agua (1×) • 20 m³</span>
+          <span class="origin origin--real" id="originBadge">Modo Campo</span>
+        </div>
+      </header>
+
+      <!-- Pestañas superiores en móvil -->
+      <div class="top-tabs" role="tablist" aria-label="Pestañas principales">
+        <button type="button" class="is-active" data-view="measure" id="topTabMeasure">Medición</button>
+        <button type="button" data-view="risks" id="topTabRisks">Matrices 3×3</button>
+        <button type="button" data-view="priorities" id="topTabPriorities">Prioritarios</button>
+        <button type="button" data-view="biorem" id="topTabBiorem">Biorrem.</button>
+      </div>
+
+      <main class="main" id="mainContent">
+
+        <!-- ================================================================
+             PESTAÑA 1: MEDICIÓN (ZONA/VOLUMEN + NIVEL 1 + NIVEL 2 + DICTAMEN)
+             ================================================================ -->
+        <section id="viewMeasure" class="view is-active">
+
+          <!-- Barra de Escenarios Demo (Modo Jurado) -->
+          <section class="demo-strip" aria-label="Escenarios Demo Realistas">
+            <div class="demo-strip__top">
+              <div>
+                <h3>Escenarios Demo Realistas (Prueba Rápida para Jurado)</h3>
+                <p class="small muted" style="margin:2px 0 0">Carga zona con volumen + vial sintético real en Canvas (ROI 50×50 px), calcula carga de Hg y ganancia por oro residual:</p>
+              </div>
+              <button type="button" class="btn btn--sm" id="btnResetSession">Reiniciar ensayo</button>
+            </div>
+            <div class="demo-grid">
+              <button type="button" class="demo-btn" data-demo="clean_water">
+                <div class="demo-btn__head">
+                  <span class="tag tag--blue">Agua • 20 m³</span>
+                  <span class="sem-dot sem-dot--ok" title="Verde"></span>
+                </div>
+                <strong>Agua Limpia (Río Alto)</strong>
+                <small>RGB(234,194,32) • ~1.3 ppb → Finaliza en Nivel 1</small>
+              </button>
+
+              <button type="button" class="demo-btn" data-demo="mine_effluent">
+                <div class="demo-btn__head">
+                  <span class="tag tag--blue">Agua • 90 m³</span>
+                  <span class="sem-dot sem-dot--bad" title="Rojo"></span>
+                </div>
+                <strong>Efluente Minero (Agua)</strong>
+                <small>RGB(235,212,102) • ~44.4 ppb → Señal activa Nivel 2</small>
+              </button>
+
+              <button type="button" class="demo-btn" data-demo="anoxic_sludge">
+                <div class="demo-btn__head">
+                  <span class="tag tag--cap-red">Lodo • 660 m³</span>
+                  <span class="sem-dot sem-dot--bad" title="Rojo"></span>
+                </div>
+                <strong>Lodo Anóxico (Poza Minera)</strong>
+                <small>Nivel 1 + UV-C + Oro Residual + Afiliación Limpia</small>
+              </button>
+            </div>
+          </section>
+
+          <!-- Stepper de 4 Pasos -->
+          <nav class="stepper" aria-label="Pasos de medición">
+            <button type="button" class="step-tab is-current" data-step="0" id="stepTab0">
+              <span class="step-tab__num">0</span>
+              <span class="step-tab__text">
+                <strong>Zona y Volumen</strong>
+                <small id="stepTab0Sub">Foto + m³ + Matriz</small>
+              </span>
+            </button>
+            <button type="button" class="step-tab" data-step="1" id="stepTab1">
+              <span class="step-tab__num">1</span>
+              <span class="step-tab__text">
+                <strong>Nivel 1 • Hg²⁺</strong>
+                <small>Tamizaje (5 min)</small>
+              </span>
+            </button>
+            <button type="button" class="step-tab" data-step="2" id="stepTab2" disabled>
+              <span class="step-tab__num">2</span>
+              <span class="step-tab__text">
+                <strong>Nivel 2 • UV-C</strong>
+                <small id="stepTab2Sub">Solo positivos</small>
+              </span>
+            </button>
+            <button type="button" class="step-tab" data-step="3" id="stepTab3" disabled>
+              <span class="step-tab__num">3</span>
+              <span class="step-tab__text">
+                <strong>Dictamen y Oro</strong>
+                <small>Hg, Oro y Programa</small>
+              </span>
+            </button>
+          </nav>
+
+          <!-- SEÑAL DE ACTIVACIÓN NIVEL 2 -->
+          <div class="level2-signal-banner hidden" id="level2SignalBanner" role="alert" aria-live="assertive">
+            <div class="signal-left">
+              <span class="signal-beacon" aria-hidden="true"></span>
+              <div>
+                <span class="signal-kicker" id="signalKicker">SEÑAL DE ACTIVACIÓN — NIVEL 2 HABILITADO</span>
+                <p id="signalText"></p>
+              </div>
+            </div>
+            <button type="button" class="btn btn--bad" id="btnSignalGoLevel2">
+              Activar Nivel 2 (UV-C 254 nm) →
+            </button>
+          </div>
+
+          <!-- ==================== PASO INICIAL: MATRIZ + FOTO DE ZONA Y VOLUMEN ==================== -->
+          <article class="panel panel--accent" id="stepPanel0">
+            <div class="panel__head">
+              <div class="panel__title-group">
+                <div class="badge-row">
+                  <span class="tag tag--gold">Paso Inicial • Antes del Tubo A</span>
+                  <span class="tag">Registro de Zona, Volumen (m³) y Oro Residual</span>
+                </div>
+                <h2>Paso Inicial: Registro de Zona y Volumen</h2>
+                <p class="panel__lead">Selecciona la matriz ambiental, registra la foto de la poza/colas con un objeto de referencia y estima el área (m²), volumen (m³) y potencial de oro residual recuperable.</p>
+              </div>
+            </div>
+
+            <div class="guidance-grid">
+              <div class="guide-box">
+                <div class="guide-box__title">📋 Procedimiento de Campo</div>
+                <ol class="guide-list">
+                  <li><strong>Registro de zona:</strong> Fotografía la poza o colas antes de agitar el sedimento para medir dimensiones limpias.</li>
+                  <li><strong>Agua:</strong> Toma la muestra a contracorriente evitando sólidos flotantes.</li>
+                  <li><strong>Lodo / Colas:</strong> 1 g de lodo + 10 mL <strong>Frasco 0 (Tapa Roja)</strong> (agitar 2 min, decantar 2 min, filtrar).</li>
+                </ol>
+              </div>
+              <div class="guide-box guide-box--safety">
+                <div class="guide-box__title">🦺 Seguridad y EPPs Obligatorios</div>
+                <ul class="guide-list">
+                  <li>Usa <strong>guantes de nitrilo</strong>, <strong>lentes de seguridad</strong> y <strong>botas impermeables</strong> cerca de relaves o pozas mineras.</li>
+                  <li>Evita pisar bordes inestables al colocar el objeto de referencia; trabaja acompañado.</li>
+                </ul>
+                <div class="epp-chips">
+                  <span class="epp-chip">Guantes Nitrilo</span>
+                  <span class="epp-chip">Lentes Seguridad</span>
+                  <span class="epp-chip">Botas Impermeables</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Selector de Matriz -->
+            <div class="matrix-grid" role="radiogroup" aria-label="Tipo de matriz">
+              <button type="button" class="matrix-card is-selected" data-matrix="water" id="btnMatrixWater" role="radio" aria-checked="true">
+                <div class="matrix-card__head">
+                  <span class="matrix-card__title">Agua (Puntos calientes / Efluentes)</span>
+                  <span class="tag tag--blue">Factor 1×</span>
+                </div>
+                <p>Unidades: <strong>ppb (µg/L)</strong> • Carga Hg: <code>× 0.001</code> • Recuperación de finos suspendidos en descargas mineras.</p>
+                <div class="badge-row">
+                  <span class="tag">NB 512 / Ley 1333 RMCH</span>
+                </div>
+              </button>
+
+              <button type="button" class="matrix-card" data-matrix="sludge" id="btnMatrixSludge" role="radio" aria-checked="false">
+                <div class="matrix-card__head">
+                  <span class="matrix-card__title">Lodo / Colas Auríferas (Frasco 0)</span>
+                  <span class="tag tag--cap-red"><span class="cap-dot cap-dot--red"></span>Tapa Roja • 10×</span>
+                </div>
+                <p>Unidades: <strong>ppb (µg/kg)</strong> • Carga Hg: <code>× 0.0014</code> (ρ ≈ 1.4 t/m³) • <strong>Oro residual: 5.5 g/t</strong> (rec. 21.5% U-101).</p>
+                <div class="badge-row">
+                  <span class="tag">CCME Canadá (170 / 486 ppb)</span>
+                  <span class="tag tag--gold">Alto Potencial Au</span>
+                </div>
+              </button>
+            </div>
+
+            <div class="sludge-protocol hidden" id="sludgeReminder" role="note">
+              <strong>Protocolo Frasco 0 — Tapa Roja (Factor 10×)</strong>
+              1 g de lodo + 10 mL Frasco 0 (agitar 2 min, decantar 2 min, filtrar).
+            </div>
+
+            <!-- BLOQUE FOTO DE ZONA Y CÁLCULO DE VOLUMEN -->
+            <div class="zone-section">
+              <h3>Foto de Zona y Estimación de Volumen y Oro Residual</h3>
+
+              <details class="photo-guide-details" open>
+                <summary>
+                  <span>📸 Instrucciones para tomar la foto de zona (3 pasos)</span>
+                  <span>▾</span>
+                </summary>
+                <ol>
+                  <li>Coloca un <strong>objeto de referencia</strong> en el borde (botella 30 cm o vara/pala de 1 m).</li>
+                  <li>Párate a <strong>3–5 metros</strong> e inclina el celular a <strong>~45°</strong> abarcando toda la poza o lodo.</li>
+                  <li><strong>Evita contraluz</strong> y asegúrate de ver los bordes completos.</li>
+                </ol>
+              </details>
+
+              <div class="capture-row">
+                <label class="btn btn--primary">
+                  <svg viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M4 5a2 2 0 00-2 2v8a2 2 0 002 2h12a2 2 0 002-2V7a2 2 0 00-2-2h-1.586a1 1 0 01-.707-.293l-1.121-1.121A2 2 0 0011.172 3H8.828a2 2 0 00-1.414.586L6.293 4.707A1 1 0 015.586 5H4zm6 9a3 3 0 100-6 3 3 0 000 6z" clip-rule="evenodd"/></svg>
+                  <span>Tomar Foto de Zona</span>
+                  <input type="file" accept="image/*" capture="environment" id="cameraZoneInput" hidden />
+                </label>
+
+                <label class="btn">
+                  <svg viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM6.293 6.707a1 1 0 010-1.414l3-3a1 1 0 011.414 0l3 3a1 1 0 01-1.414 1.414L11 5.414V13a1 1 0 11-2 0V5.414L7.707 6.707a1 1 0 01-1.414 0z" clip-rule="evenodd"/></svg>
+                  <span>Subir Foto</span>
+                  <input type="file" accept="image/*" id="uploadZoneInput" hidden />
+                </label>
+
+                <button type="button" class="btn btn--gold" id="btnLoadDemoZone">
+                  Cargar Imagen Demo de Zona
+                </button>
+              </div>
+
+              <div class="analysis-split">
+                <div class="canvas-frame">
+                  <canvas id="canvasZone" width="360" height="240" aria-label="Lienzo interactivo de zona y volumen"></canvas>
+                  <div class="canvas-bar">
+                    <span id="zoneCanvasCaption">Delimitación de zona • Escala de referencia</span>
+                    <span class="mono" id="zoneCanvasDimLabel">8.0 m × 5.0 m</span>
+                  </div>
+                </div>
+
+                <div class="zone-controls">
+                  <div class="slider-group">
+                    <div class="slider-head">
+                      <label>Objeto de Referencia en el Borde</label>
+                    </div>
+                    <div class="ref-pills" role="group" aria-label="Objeto de referencia">
+                      <button type="button" class="chip-btn" data-ref="0.3" data-ref-name="Botella 0.3 m">Botella 0.3 m</button>
+                      <button type="button" class="chip-btn is-active" data-ref="1.0" data-ref-name="Vara/Pala 1.0 m">Vara/Pala 1.0 m</button>
+                      <button type="button" class="chip-btn" data-ref="0.8" data-ref-name="Paso adulto 0.8 m">Paso adulto 0.8 m</button>
+                    </div>
+                    <div class="slider-hint" id="refEquivalenceHint">Equivalencia: ~8.0 varas de largo × ~5.0 varas de ancho</div>
+                  </div>
+
+                  <div class="slider-group">
+                    <div class="slider-head">
+                      <label for="zoneLengthRange">Largo estimado de la zona (m)</label>
+                      <input type="number" class="num-inline" id="zoneLengthNum" min="0.5" max="200" step="0.5" value="8" aria-label="Largo en metros" />
+                    </div>
+                    <input type="range" class="range-input" id="zoneLengthRange" min="1" max="60" step="0.5" value="8" />
+                  </div>
+
+                  <div class="slider-group">
+                    <div class="slider-head">
+                      <label for="zoneWidthRange">Ancho estimado de la zona (m)</label>
+                      <input type="number" class="num-inline" id="zoneWidthNum" min="0.5" max="200" step="0.5" value="5" aria-label="Ancho en metros" />
+                    </div>
+                    <input type="range" class="range-input" id="zoneWidthRange" min="1" max="50" step="0.5" value="5" />
+                  </div>
+
+                  <div class="slider-group">
+                    <div class="slider-head">
+                      <label for="zoneDepthManual">Profundidad promedio (m)</label>
+                      <input type="number" class="num-inline" id="zoneDepthManual" min="0.05" max="20" step="0.1" value="0.5" aria-label="Profundidad en metros" />
+                    </div>
+                    <div class="depth-pills" role="group" aria-label="Profundidad rápida">
+                      <button type="button" class="chip-btn" data-depth="0.2">0.2 m</button>
+                      <button type="button" class="chip-btn is-active" data-depth="0.5">0.5 m</button>
+                      <button type="button" class="chip-btn" data-depth="1.0">1.0 m</button>
+                      <button type="button" class="chip-btn" data-depth="2.0">2.0 m</button>
+                    </div>
+                  </div>
+
+                  <!-- Resultados en tiempo real: Área, Volumen y Ganancia Estimada de Oro Residual -->
+                  <div class="volume-kpis">
+                    <div class="vol-kpi">
+                      <span>Área Superficial</span>
+                      <strong class="mono" id="zoneAreaOut">40.0 m²</strong>
+                    </div>
+                    <div class="vol-kpi">
+                      <span>Volumen Estimado</span>
+                      <strong class="mono" id="zoneVolumeOut">20.0 m³</strong>
+                    </div>
+                    <div class="vol-kpi vol-kpi--ok">
+                      <span>Ganancia Oro Colas</span>
+                      <strong class="mono" id="zoneGoldPreviewOut">$196 USD</strong>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="step-footer">
+              <span class="small muted">El volumen (m³) y el potencial de oro residual se integrarán a las Matrices 3×3 y al Programa de Biorremediación.</span>
+              <button type="button" class="btn btn--primary" id="btnGoStep1">Continuar al Nivel 1 — Tubo A (5 min) →</button>
+            </div>
+          </article>
+
+          <!-- ==================== NIVEL 1: TAMIZAJE RÁPIDO (TUBO A) ==================== -->
+          <article class="panel panel--level1 hidden" id="stepPanel1">
+            <div class="panel__head">
+              <div class="panel__title-group">
+                <div class="badge-row">
+                  <span class="tag tag--gold">Nivel 1 • 100% de las muestras • 5 min</span>
+                  <span class="tag tag--cap-yellow"><span class="cap-dot cap-dot--yellow"></span>Tubo A • Tapa Amarilla</span>
+                </div>
+                <h2>Nivel 1 — Tamizaje Rápido de Mercurio Inorgánico (Hg²⁺)</h2>
+                <p class="panel__lead">
+                  Cuantificación de Hg²⁺ en agua y mercurio móvil en lodos/sedimentos.
+                  <strong>Si el resultado es Verde (&lt; 5 ppb en agua / &lt; 50 ppb en lodo), la prueba finaliza ahorrando tiempo y reactivos.</strong>
+                </p>
+              </div>
+            </div>
+
+            <div class="guidance-grid">
+              <div class="guide-box">
+                <div class="guide-box__title">🧪 Procedimiento — Tubo A (5 min)</div>
+                <ol class="guide-list">
+                  <li>Dosifique la alícuota filtrada en el <strong>Tubo A (Tapa Amarilla)</strong> con AgNPs amarillas.</li>
+                  <li>Cierre, agite suavemente y espere <strong>5 minutos</strong>.</li>
+                  <li>Fotografíe frente a fondo blanco con luz difusa centrando el líquido en la <strong>ROI 50×50 px</strong>.</li>
+                </ol>
+              </div>
+              <div class="guide-box guide-box--safety">
+                <div class="guide-box__title">🦺 Seguridad y Cuidado de Muestra</div>
+                <ul class="guide-list">
+                  <li>Use <strong>guantes de nitrilo y lentes de seguridad</strong>; evite derrames y reflejos directos.</li>
+                  <li><strong>Cero vertido:</strong> deposite el tubo usado en la bolsa sellada de residuos peligrosos del kit.</li>
+                </ul>
+                <div class="epp-chips">
+                  <span class="epp-chip">Guantes Nitrilo</span>
+                  <span class="epp-chip">Lentes Seguridad</span>
+                  <span class="epp-chip">Residuos Peligrosos</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="capture-row">
+              <label class="btn btn--primary">
+                <svg viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M4 5a2 2 0 00-2 2v8a2 2 0 002 2h12a2 2 0 002-2V7a2 2 0 00-2-2h-1.586a1 1 0 01-.707-.293l-1.121-1.121A2 2 0 0011.172 3H8.828a2 2 0 00-1.414.586L6.293 4.707A1 1 0 015.586 5H4zm6 9a3 3 0 100-6 3 3 0 000 6z" clip-rule="evenodd"/></svg>
+                <span>Tomar Foto — Tubo A</span>
+                <input type="file" accept="image/*" capture="environment" id="cameraInputA" hidden />
+              </label>
+
+              <label class="btn">
+                <svg viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM6.293 6.707a1 1 0 010-1.414l3-3a1 1 0 011.414 0l3 3a1 1 0 01-1.414 1.414L11 5.414V13a1 1 0 11-2 0V5.414L7.707 6.707a1 1 0 01-1.414 0z" clip-rule="evenodd"/></svg>
+                <span>Subir Imagen</span>
+                <input type="file" accept="image/*" id="uploadInputA" hidden />
+              </label>
+            </div>
+
+            <div class="analysis-split">
+              <div class="canvas-frame">
+                <canvas id="canvasA" width="320" height="220" aria-label="Lienzo de análisis ROI Tubo A"></canvas>
+                <div class="canvas-bar">
+                  <span class="roi-indicator">ROI 50×50 px • Toca para ajustar</span>
+                  <button type="button" class="btn btn--sm hidden" id="centerRoiA">Centrar</button>
+                </div>
+              </div>
+
+              <div>
+                <div class="telemetry-empty" id="telemetryEmptyA">
+                  Esperando captura del <strong>Tubo A (Nivel 1)</strong>.<br />
+                  Toma una foto, sube una imagen o usa un Escenario Demo arriba.
+                </div>
+                <div class="telemetry-box hidden" id="telemetryA">
+                  <div class="swatch-compare">
+                    <div class="swatch-item">
+                      <span class="swatch-chip" style="background:rgb(235,195,30)"></span>
+                      <div><small>Blanco AgNPs</small><strong class="mono">S = 87.2%</strong></div>
+                    </div>
+                    <span class="muted">→</span>
+                    <div class="swatch-item">
+                      <span class="swatch-chip" id="swatchA"></span>
+                      <div><small>ROI Tubo A</small><strong class="mono" id="rgbTextA">—</strong></div>
+                    </div>
+                  </div>
+                  <div class="metrics-grid">
+                    <div class="metric-cell"><span>HSV (H / S / V)</span><strong class="mono" id="hsvTextA">—</strong></div>
+                    <div class="metric-cell"><span>Razón B/R</span><strong class="mono" id="brTextA">—</strong></div>
+                    <div class="metric-cell"><span>ΔS (87.2 − S)</span><strong class="mono" id="deltaSTextA">—</strong></div>
+                    <div class="metric-cell metric-cell--primary"><span id="concLabelA">Hg²⁺ (ppb)</span><strong class="mono" id="concTextA">—</strong></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="gate-box hidden" id="level1GateBanner" role="status">
+              <div>
+                <strong id="gateTitle"></strong>
+                <p id="gateDesc"></p>
+              </div>
+              <div class="badge-row" id="gateActions"></div>
+            </div>
+
+            <div class="step-footer">
+              <button type="button" class="btn" id="btnBackStep0">← Volver a Zona y Volumen</button>
+              <div class="badge-row">
+                <button type="button" class="btn hidden" id="btnUnlockLevel2">Desbloquear Nivel 2 manualmente</button>
+                <button type="button" class="btn btn--primary hidden" id="btnNextFromLevel1">Continuar →</button>
+              </div>
+            </div>
+          </article>
+
+          <!-- ==================== NIVEL 2: ESPECIACIÓN UV-C ==================== -->
+          <article class="panel panel--level2 is-locked hidden" id="stepPanel2">
+            <div class="panel__head">
+              <div class="panel__title-group">
+                <div class="badge-row">
+                  <span class="tag tag--cap-purple">Nivel 2 • Solo positivos Amarillo/Rojo • +5 a 8 min</span>
+                  <span class="tag tag--cap-purple"><span class="cap-dot cap-dot--purple"></span>Tubo B • UV-C 254 nm</span>
+                  <span class="tag tag--cap-orange"><span class="cap-dot cap-dot--orange"></span>Tubo C • Tapa Naranja</span>
+                </div>
+                <h2>Nivel 2 — Especiación de Metilmercurio (CH₃Hg⁺)</h2>
+                <p class="panel__lead">Se activa la cámara UV-C (254 nm) principalmente en lodos y sedimentos anóxicos (50 a 500+ ppb).</p>
+              </div>
+            </div>
+
+            <div class="rigor-note" role="note">
+              <strong>Nota de rigor técnico:</strong> En agua de río abierta el CH₃Hg⁺ suele estar en partes por trillón (<strong>0.001 a 0.02 ppb</strong>), por debajo del límite de detección portátil; por ello, en agua el kit actúa como <strong>alerta temprana de descargas de Hg²⁺</strong> y en lodos identifica <strong>focos activos de metilación</strong>.
+            </div>
+
+            <div class="guidance-grid">
+              <div class="guide-box">
+                <div class="guide-box__title">⚡ Procedimiento — Foto-oxidación UV-C (+5–8 min)</div>
+                <ol class="guide-list">
+                  <li>Transfiera una alícuota filtrada al <strong>Tubo B (Tapa Morada)</strong>.</li>
+                  <li>Irradie en la <strong>cámara UV-C (254 nm) cerrada</strong> durante 5 a 8 minutos (CH₃Hg⁺ → Hg²⁺).</li>
+                  <li>Transfiera al <strong>Tubo C (Tapa Naranja con AgNPs)</strong> y fotografíe para calcular <code>CH₃Hg⁺ = max(0, Hg_total − Hg²⁺)</code>.</li>
+                </ol>
+              </div>
+              <div class="guide-box guide-box--uvc-danger">
+                <div class="guide-box__title">☢️ Seguridad Radiación UV-C y EPP</div>
+                <ul class="guide-list">
+                  <li><strong>¡PELIGRO UV-C 254 nm!</strong> Nunca mire la lámpara ni abra la cámara encendida.</li>
+                  <li>Use <strong>lentes con filtro UV</strong> y <strong>guantes de nitrilo</strong> (absorción dérmica de CH₃Hg⁺).</li>
+                </ul>
+                <div class="epp-chips">
+                  <span class="epp-chip">Lentes Filtro UV</span>
+                  <span class="epp-chip">Guantes Nitrilo</span>
+                  <span class="epp-chip">Cámara Cerrada</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="level2-interactive" id="level2Body">
+              <div class="capture-row">
+                <label class="btn btn--orange">
+                  <svg viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M4 5a2 2 0 00-2 2v8a2 2 0 002 2h12a2 2 0 002-2V7a2 2 0 00-2-2h-1.586a1 1 0 01-.707-.293l-1.121-1.121A2 2 0 0011.172 3H8.828a2 2 0 00-1.414.586L6.293 4.707A1 1 0 015.586 5H4zm6 9a3 3 0 100-6 3 3 0 000 6z" clip-rule="evenodd"/></svg>
+                  <span>Tomar Foto — Tubo C (Post UV-C)</span>
+                  <input type="file" accept="image/*" capture="environment" id="cameraInputC" hidden />
+                </label>
+
+                <label class="btn">
+                  <svg viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM6.293 6.707a1 1 0 010-1.414l3-3a1 1 0 011.414 0l3 3a1 1 0 01-1.414 1.414L11 5.414V13a1 1 0 11-2 0V5.414L7.707 6.707a1 1 0 01-1.414 0z" clip-rule="evenodd"/></svg>
+                  <span>Subir Imagen</span>
+                  <input type="file" accept="image/*" id="uploadInputC" hidden />
+                </label>
+              </div>
+
+              <div class="analysis-split">
+                <div class="canvas-frame">
+                  <canvas id="canvasC" width="320" height="220" aria-label="Lienzo de análisis ROI Tubo C"></canvas>
+                  <div class="canvas-bar">
+                    <span class="roi-indicator">ROI 50×50 px • Toca para ajustar</span>
+                    <button type="button" class="btn btn--sm hidden" id="centerRoiC">Centrar</button>
+                  </div>
+                </div>
+
+                <div>
+                  <div class="telemetry-empty" id="telemetryEmptyC">Esperando lectura del <strong>Tubo C (Post UV-C 254 nm)</strong>.</div>
+                  <div class="telemetry-box hidden" id="telemetryC">
+                    <div class="swatch-compare">
+                      <div class="swatch-item">
+                        <span class="swatch-chip" style="background:rgb(235,195,30)"></span>
+                        <div><small>Blanco AgNPs</small><strong class="mono">S = 87.2%</strong></div>
+                      </div>
+                      <span class="muted">→</span>
+                      <div class="swatch-item">
+                        <span class="swatch-chip" id="swatchC"></span>
+                        <div><small>ROI Tubo C</small><strong class="mono" id="rgbTextC">—</strong></div>
+                      </div>
+                    </div>
+                    <div class="metrics-grid">
+                      <div class="metric-cell"><span>HSV (H / S / V)</span><strong class="mono" id="hsvTextC">—</strong></div>
+                      <div class="metric-cell"><span>Razón B/R</span><strong class="mono" id="brTextC">—</strong></div>
+                      <div class="metric-cell"><span>ΔS (87.2 − S)</span><strong class="mono" id="deltaSTextC">—</strong></div>
+                      <div class="metric-cell metric-cell--primary"><span id="concLabelC">Hg Total (ppb)</span><strong class="mono" id="concTextC">—</strong></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="step-footer">
+              <button type="button" class="btn" id="btnBackStep1">← Volver al Nivel 1</button>
+              <button type="button" class="btn btn--primary" id="btnGoStep3">Ver Dictamen, Carga Hg y Oro Residual →</button>
+            </div>
+          </article>
+
+          <!-- ==================== PASO 3: DICTAMEN, CARGA Hg, ORO RESIDUAL Y AFILIACIÓN ==================== -->
+          <article class="panel panel--accent hidden" id="stepPanel3" aria-live="polite">
+            <div class="panel__head">
+              <div class="panel__title-group">
+                <div class="badge-row">
+                  <span class="tag tag--gold">Paso 3 • Dictamen Integral y Oportunidad</span>
+                  <span class="tag" id="resultLevelBadge">Nivel 1</span>
+                </div>
+                <h2 id="resultTitle">Dictamen Normativo y Oportunidad de Oro Residual</h2>
+              </div>
+            </div>
+
+            <!-- Semáforo -->
+            <div class="semaphore-card semaphore-card--ok" id="semaphoreBanner">
+              <div>
+                <span class="semaphore-pill" id="semaphoreBadge">VERDE</span>
+                <p class="semaphore-text" id="semaphoreMessage"></p>
+                <small class="semaphore-norm" id="semaphoreNormRef"></small>
+              </div>
+              <div class="traffic-lights" aria-label="Indicador semáforo">
+                <span class="bulb bulb--bad" id="bulbRed"></span>
+                <span class="bulb bulb--mid" id="bulbYellow"></span>
+                <span class="bulb bulb--ok" id="bulbGreen"></span>
+              </div>
+            </div>
+
+            <!-- KPIs de Concentración -->
+            <div class="kpi-row">
+              <div class="kpi">
+                <span class="kpi__label">Hg²⁺ Inorgánico (Nivel 1)</span>
+                <strong class="kpi__val mono" id="kpiHg2">—</strong>
+                <span class="kpi__unit" id="kpiUnit1">ppb (µg/L)</span>
+              </div>
+              <div class="kpi">
+                <span class="kpi__label">Hg Total (Post UV-C)</span>
+                <strong class="kpi__val mono" id="kpiHgTotal">—</strong>
+                <span class="kpi__unit" id="kpiUnit2">ppb (µg/L)</span>
+              </div>
+              <div class="kpi kpi--methyl">
+                <span class="kpi__label">CH₃Hg⁺ Metilmercurio</span>
+                <strong class="kpi__val mono" id="kpiMethyl">—</strong>
+                <span class="kpi__unit" id="kpiUnit3">ppb (µg/L)</span>
+              </div>
+            </div>
+
+            <!-- KPIs de Volumen, Carga Total de Hg (g) y Ganancia Estimada de Oro Residual (USD) -->
+            <div class="kpi-row">
+              <div class="kpi">
+                <span class="kpi__label">Volumen y Masa de Colas</span>
+                <strong class="kpi__val mono" id="kpiVolume">—</strong>
+                <span class="kpi__unit" id="kpiAreaSub">Área: — m²</span>
+              </div>
+              <div class="kpi kpi--bad">
+                <span class="kpi__label">Carga Total Estimada de Hg</span>
+                <strong class="kpi__val mono" id="kpiHgMass">—</strong>
+                <span class="kpi__unit" id="kpiMassFormula">Vol × Conc × 0.001</span>
+              </div>
+              <div class="kpi kpi--gold">
+                <span class="kpi__label">Ganancia Neta Oro Residual (U-101)</span>
+                <strong class="kpi__val mono" id="kpiGoldGain">—</strong>
+                <span class="kpi__unit" id="kpiGoldGrams">Oro recuperable: — g Au</span>
+              </div>
+            </div>
+
+            <!-- Barra de Especiación -->
+            <div class="speciation-box hidden" id="speciationBarWrap">
+              <div class="speciation-head">
+                <span>Fracción de Especies sobre Mercurio Total</span>
+                <span class="mono" id="speciationPctLabel">—</span>
+              </div>
+              <div class="speciation-track">
+                <div class="spec-inorg" id="barInorganic" style="width:50%"></div>
+                <div class="spec-methyl" id="barMethyl" style="width:50%"></div>
+              </div>
+              <div class="speciation-legend">
+                <span><span class="cap-dot cap-dot--yellow"></span> Hg²⁺ Inorgánico</span>
+                <span><span class="cap-dot cap-dot--purple"></span> CH₃Hg⁺ Metilmercurio (UV-C)</span>
+              </div>
+            </div>
+
+            <!-- OPCIÓN EXTRA AUTOMÁTICA DE AFILIACIÓN AL PROGRAMA DE BIORREMEDIACIÓN (Solo si Riesgo es Considerable / Alto / Rojo / Amarillo) -->
+            <div class="affiliation-cta-card hidden" id="resultAffiliationCard" role="region" aria-label="Afiliación al programa de biorremediación">
+              <div>
+                <div class="badge-row">
+                  <span class="tag tag--bad">Riesgo Considerable / Alto Detectado</span>
+                  <span class="tag tag--gold">Tecnologías Limpias • Reto 4.2</span>
+                </div>
+                <div class="affiliation-cta-card__title">Afilia este sitio al Programa de Biorremediación y Rescate de Oro Residual</div>
+                <p id="resultAffiliationText">
+                  El oro residual recuperable en las colas mediante separación gravimétrica U-101 (21.5% en &lt; 100 μm) permite financiar la limpieza biológica del mercurio (SBR + Piedra Pómez + Cinabrio HgS) sin químicos tóxicos.
+                </p>
+              </div>
+              <button type="button" class="btn btn--gold" id="btnAffiliateFromResult">
+                ⚡ Afiliar y ver Ruta de Biorremediación →
+              </button>
+            </div>
+
+            <!-- Seguridad de Cierre -->
+            <div class="guide-box guide-box--safety" style="margin-top:14px">
+              <div class="guide-box__title">🦺 Cierre Seguro y Cadena de Custodia</div>
+              <ul class="guide-list">
+                <li><strong>Positivos (Amarillo/Rojo):</strong> Conserve contra-muestra refrigerada (4 °C) para envío a laboratorio acreditado (<strong>CV-AAS / ICP-MS</strong>).</li>
+                <li>Deposite todos los viales en el contenedor de residuos peligrosos y lávese las manos tras retirar los guantes.</li>
+              </ul>
+            </div>
+
+            <!-- Guardar -->
+            <form class="save-form" id="saveMeasurementForm">
+              <div class="field">
+                <label for="inputLocation">Ubicación / Cuenca / Punto de Muestreo</label>
+                <input type="text" id="inputLocation" placeholder="Ej. Río Mapiri — Sector Cooperativa" required maxlength="80" />
+              </div>
+              <div class="field">
+                <label for="inputNotes">Observaciones de Campo (opcional)</label>
+                <input type="text" id="inputNotes" placeholder="Ej. Poza anóxica oscura, colas de amalgamación" maxlength="120" />
+              </div>
+              <div class="field field--full">
+                <button type="submit" class="btn btn--ok">
+                  <svg viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path d="M7.707 10.293a1 1 0 10-1.414 1.414l3 3a1 1 0 001.414 0l3-3a1 1 0 00-1.414-1.414L11 11.586V6h5a2 2 0 012 2v7a2 2 0 01-2 2H4a2 2 0 01-2-2V8a2 2 0 012-2h5v5.586l-1.293-1.293zM9 4a1 1 0 012 0v2H9V4z"/></svg>
+                  <span>Guardar Sitio en Matrices 3×3 y Prioritarios</span>
+                </button>
+              </div>
+            </form>
+
+            <div class="step-footer">
+              <button type="button" class="btn" id="btnBackFromResult">← Revisar medición</button>
+              <div class="badge-row">
+                <button type="button" class="btn" id="btnJumpToMatrix">Ver en Matrices 3×3</button>
+                <button type="button" class="btn btn--gold" id="btnNewMeasurement">Nueva muestra</button>
+              </div>
+            </div>
+          </article>
+
+          <!-- Curva de Calibración SVG desplegable -->
+          <details class="calib-details">
+            <summary>
+              <div>
+                <h3>Referencia Técnica • AgNPs Amarillas (R² = 0.992) y Modelo Oro Residual</h3>
+                <strong style="font-size:14.5px">Ver Curva de Calibración en Vivo y Ecuaciones de Oro y Mercurio</strong>
+              </div>
+              <span>▾</span>
+            </summary>
+            <div class="calib-body grid grid--scatter">
+              <div class="chart-box">
+                <svg id="calibrationChart" viewBox="0 0 360 190" role="img" aria-label="Curva de calibración lineal ΔS versus concentración de Hg"></svg>
+              </div>
+              <div class="eq-card mono">
+                <div><strong>Blanco AgNPs:</strong> RGB(235, 195, 30) → S = 87.2%</div>
+                <div><strong>ΔS</strong> = max(0, 87.2 − S<sub>muestra</sub>)</div>
+                <div><strong>C<sub>final</sub></strong> = ΔS × 1.45 × f<sub>matriz</sub> (1 Agua | 10 Lodo)</div>
+                <div><strong>Carga Hg (g):</strong> Vol × Conc × 0.001 (Agua) | × 0.0014 (Lodo)</div>
+                <div><strong>Oro Colas (g Au):</strong> Toneladas × 5.5 g/t × 21.5% (U-101)</div>
+                <div><strong>Ganancia Neta Limpia:</strong> Oro (g) × $85/g × 65% margen neto</div>
+              </div>
+            </div>
+          </details>
+        </section>
+
+        <!-- ================================================================
+             PESTAÑA 2: MATRICES 3×3 (RIESGO AMBIENTAL + OPORTUNIDAD DE INVERSIÓN ORO)
+             ================================================================ -->
+        <section id="viewRisks" class="view">
+          <!-- KPIs Globales de Cuenca (SIN costo de remediación, CON Oro Residual y Ganancia) -->
+          <div class="portfolio-kpis" id="riskPortfolioKpis"></div>
+
+          <div class="risk-layout">
+            <!-- Panel Dual de Matrices 3×3 -->
+            <article class="panel panel--accent">
+              <div class="panel__head">
+                <div class="panel__title-group">
+                  <h3>Evaluación Dual: Riesgo Ambiental y Rentabilidad Limpia</h3>
+                  <h2 id="activeMatrixHeading">Matriz de Riesgos 3×3 (Severidad vs. Volumen)</h2>
+                  <p class="panel__lead" id="activeMatrixSub">Alterna entre la Matriz de Riesgos Hg y la Matriz de Oportunidad de Inversión en Oro Residual de Colas.</p>
+                </div>
+                <div class="matrix-switcher" role="tablist" aria-label="Seleccionar matriz 3 por 3">
+                  <button type="button" class="is-active" data-matrix-mode="risk" id="btnModeRiskMatrix">1. Matriz de Riesgos</button>
+                  <button type="button" data-matrix-mode="gold" id="btnModeGoldMatrix">2. Oportunidad Oro Colas</button>
+                </div>
+              </div>
+
+              <!-- SUB-MATRIZ 1: RIESGO AMBIENTAL 3x3 -->
+              <div id="blockRiskMatrix">
+                <div class="risk-matrix-wrap">
+                  <div class="axis-y-col" aria-label="Eje Y Severidad">
+                    <div class="axis-y-label"><strong>Alta</strong><small>Rojo o CH₃Hg⁺</small></div>
+                    <div class="axis-y-label"><strong>Media</strong><small>Amarillo (Alerta)</small></div>
+                    <div class="axis-y-label"><strong>Baja</strong><small>Verde (Seguro)</small></div>
+                  </div>
+                  <div class="risk-grid-3x3" id="riskMatrixGrid" role="grid" aria-label="Matriz de riesgos 3 por 3"></div>
+                </div>
+                <div class="axis-x-row">
+                  <div></div>
+                  <div class="axis-x-labels">
+                    <div><strong>Pequeño</strong><small>&lt; 50 m³</small></div>
+                    <div><strong>Mediano</strong><small>50 – 500 m³</small></div>
+                    <div><strong>Grande</strong><small>&gt; 500 m³</small></div>
+                  </div>
+                </div>
+                <div class="risk-legend">
+                  <span class="legend-swatch"><i style="background:var(--ok-soft);border-color:var(--ok)"></i> Bajo</span>
+                  <span class="legend-swatch"><i style="background:var(--mid-soft);border-color:var(--mid)"></i> Moderado</span>
+                  <span class="legend-swatch"><i style="background:var(--high-soft);border-color:var(--high)"></i> Alto</span>
+                  <span class="legend-swatch"><i style="background:var(--bad-soft);border-color:var(--bad)"></i> Crítico</span>
+                </div>
+              </div>
+
+              <!-- SUB-MATRIZ 2: OPORTUNIDAD DE INVERSIÓN Y GANANCIA DE ORO RESIDUAL EN COLAS 3x3 -->
+              <div id="blockGoldMatrix" class="hidden">
+                <div class="risk-matrix-wrap">
+                  <div class="axis-y-col" aria-label="Eje Y Ganancia Estimada Oro Residual">
+                    <div class="axis-y-label"><strong>Alta Ganancia</strong><small>&gt; $25,000 USD</small></div>
+                    <div class="axis-y-label"><strong>Media</strong><small>$2,000 – $25,000</small></div>
+                    <div class="axis-y-label"><strong>Baja</strong><small>&lt; $2,000 USD</small></div>
+                  </div>
+                  <div class="risk-grid-3x3" id="goldMatrixGrid" role="grid" aria-label="Matriz de oportunidad de inversión en oro residual 3 por 3"></div>
+                </div>
+                <div class="axis-x-row">
+                  <div></div>
+                  <div class="axis-x-labels">
+                    <div><strong>Riesgo Bajo</strong><small>Control / Verde</small></div>
+                    <div><strong>Riesgo Moderado</strong><small>Alerta / Amarillo</small></div>
+                    <div><strong>Alto / Crítico</strong><small>Rojo o CH₃Hg⁺</small></div>
+                  </div>
+                </div>
+                <div class="risk-legend">
+                  <span class="legend-swatch"><i style="background:#F5E3B3;border-color:var(--gold)"></i> Inversión Estrella (Autofinanciada)</span>
+                  <span class="legend-swatch"><i style="background:var(--ok-soft);border-color:var(--ok)"></i> Alta Oportunidad Limpia</span>
+                  <span class="legend-swatch"><i style="background:var(--blue-soft);border-color:var(--blue)"></i> Cofinanciamiento Verde</span>
+                  <span class="legend-swatch"><i style="background:var(--paper);border-color:var(--line)"></i> Monitoreo Base</span>
+                </div>
+              </div>
+            </article>
+
+            <!-- Panel de Detalle Interactivo + Botón Afiliación -->
+            <aside class="risk-detail-panel" id="riskDetailPanel" aria-live="polite">
+              <h3>Detalle de Sitio / Cuadrante</h3>
+              <h2 style="margin-top:4px">Selecciona un sitio en la matriz</h2>
+              <p class="small muted" style="margin-top:6px">Al tocar un pin o celda verás el volumen (m³), carga total de Hg (g), oro residual rescatable (g Au), ganancia neta estimada (USD) y la opción de afiliación a biorremediación.</p>
+            </aside>
+          </div>
+        </section>
+
+        <!-- ================================================================
+             PESTAÑA 3: PRIORITARIOS (RANKING Y OPORTUNIDAD EN ORO RESIDUAL)
+             ================================================================ -->
+        <section id="viewPriorities" class="view">
+          <article class="panel panel--accent">
+            <div class="toolbar">
+              <div>
+                <h3>Índice de Prioridad 0–100 (45% Hg Total • 30% CH₃Hg⁺ • 25% Volumen)</h3>
+                <h2>Ranking de Sitios Prioritarios y Ganancia en Oro Residual</h2>
+              </div>
+              <div class="badge-row">
+                <button type="button" class="btn btn--sm" id="btnRestoreDemoHistory">Restaurar demo Bolivia</button>
+                <button type="button" class="btn btn--primary" id="btnExportPriorityCsv">
+                  <svg viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd"/></svg>
+                  <span>Exportar Reporte Completo CSV</span>
+                </button>
+              </div>
+            </div>
+
+            <div class="portfolio-kpis" id="prioritySummaryKpis" style="margin-top:14px"></div>
+
+            <div class="filter-group" style="margin-top:14px" role="group" aria-label="Filtrar sitios prioritarios">
+              <button type="button" class="filter-btn is-active" data-filter="all">Todos</button>
+              <button type="button" class="filter-btn" data-filter="critical">Crítico / Alto</button>
+              <button type="button" class="filter-btn" data-filter="water">Agua</button>
+              <button type="button" class="filter-btn" data-filter="sludge">Lodo / Colas</button>
+            </div>
+          </article>
+
+          <div id="priorityList" class="priority-list"></div>
+        </section>
+
+        <!-- ================================================================
+             PESTAÑA 4: PROGRAMA DE BIORREMEDIACIÓN Y TECNOLOGÍAS LIMPIAS (RETO 4.2)
+             ================================================================ -->
+        <section id="viewBiorem" class="view">
+
+          <!-- Banner Institucional Reto 4.2 -->
+          <div class="alert-banner" role="region" aria-label="Directriz técnica de biorremediación">
+            <div class="alert-banner__icon">!</div>
+            <div>
+              <h2 class="alert-banner__title">
+                Si tus relaves presentan niveles altos o considerables de mercurio detectados, afíliate y sigue esta ruta de biorremediación con tecnologías limpias:
+              </h2>
+              <p class="alert-banner__sub">
+                Secuencia integrada de recuperación gravimétrica de oro fino (<span class="mono">U-101</span>, 19.8–22.7% en &lt; 100 μm de 5.5 g/t), biorreactor híbrido con piedra pómez/EPS (<span class="mono">R-101</span>, 97–99% retención y 80–90% reacción en lodos) y fijación gas-sólido en azufre (<span class="mono">T-101</span>, &gt; 99% cinabrio HgS).
+              </p>
+            </div>
+          </div>
+
+          <!-- Panel de Afiliación al Programa de Biorremediación -->
+          <article class="affiliation-panel" id="affiliationPanel">
+            <div class="panel__head">
+              <div class="panel__title-group">
+                <div class="badge-row">
+                  <span class="tag tag--gold">Programa de Tecnologías Limpias • Reto 4.2</span>
+                  <span class="tag tag--ok" id="affActiveSiteTag">Sitio listo para afiliar</span>
+                </div>
+                <h2>Afiliación al Programa de Biorremediación y Rescate de Oro</h2>
+                <p class="panel__lead">Registra un sitio con riesgo considerable/alto para acceder al paquete técnico U-101 + SBR + Trampa de Azufre financiado con la recuperación del oro residual en las colas.</p>
+              </div>
+            </div>
+
+            <form class="save-form" id="affiliationForm" style="margin-top:0;padding-top:0;border-top:0">
+              <div class="field">
+                <label for="affSiteSelect">Sitio Evaluado (Riesgo Considerable / Alto)</label>
+                <select id="affSiteSelect"></select>
+              </div>
+              <div class="field">
+                <label for="affCoopName">Cooperativa / Comunidad / Operador</label>
+                <input type="text" id="affCoopName" placeholder="Ej. Cooperativa Aurífera Mapiri Ltda." required maxlength="80" />
+              </div>
+              <div class="field">
+                <label for="affContact">Teléfono / WhatsApp de Contacto</label>
+                <input type="text" id="affContact" placeholder="Ej. +591 7XXXXXXX" required maxlength="40" />
+              </div>
+              <div class="field">
+                <label for="affEmail">Correo Electrónico</label>
+                <input type="email" id="affEmail" placeholder="Ej. cooperativa@ejemplo.com" required maxlength="100" />
+              </div>
+              <div class="field field--full">
+                <button type="submit" class="btn btn--gold">
+                  ✓ Confirmar Pre-Afiliación al Programa de Biorremediación
+                </button>
+              </div>
+            </form>
+
+            <!-- Lista de sitios ya afiliados -->
+            <div id="affiliatedListWrap" class="hidden" style="margin-top:14px;padding-top:12px;border-top:1px solid var(--line-2)">
+              <h3>Solicitudes de Afiliación Registradas (localStorage)</h3>
+              <div class="affiliated-list" id="affiliatedList"></div>
+            </div>
+          </article>
+
+          <!-- Selector de Vista: Guía Visual vs Simulador PFD (después del formulario de afiliación) -->
+          <div class="toolbar">
+            <div>
+              <h3>Ruta Técnica del Programa (Reto 4.2)</h3>
+            </div>
+            <div class="bio-subtabs" role="tablist" aria-label="Secciones de biorremediación">
+              <button type="button" class="bio-subtab is-active" data-bio-sub="sencilla" id="btnBioSubSencilla">1. Guía Visual (4 Pasos)</button>
+              <button type="button" class="bio-subtab" data-bio-sub="tecnica" id="btnBioSubTecnica">2. Simulador PFD &amp; Balance</button>
+            </div>
+          </div>
+
+          <!-- ===== SUB-VISTA BIO 1: GUÍA VISUAL DINÁMICA (4 PASOS + COMPARADOR) ===== -->
+          <div id="bioSubSencilla" class="view is-active">
+            <div class="card">
+              <div class="card__head">
+                <div>
+                  <h3>Recorrido Explicativo Paso a Paso</h3>
+                  <h2 style="margin-top:4px;">De colas contaminadas con mercurio a oro recuperado, agua limpia y cinabrio</h2>
+                </div>
+                <button type="button" id="btn-friendly-tour" class="btn btn--gold">
+                  <span id="friendly-tour-icon">&#9654;</span>
+                  <span id="friendly-tour-text">Reproducir recorrido automático</span>
+                </button>
+              </div>
+
+              <div class="steps-4" id="friendly-steps">
+                <button type="button" class="step-card is-active" data-fstep="0">
+                  <span class="step-card__num">Paso 1 · Rescate de Oro Fino</span>
+                  <span class="step-card__title">Recuperamos oro y colamos arenas</span>
+                  <span class="step-card__hint">Rescata 19.8–22.7% de Au (&lt; 100 μm) de 5.5 g/t</span>
+                </button>
+                <button type="button" class="step-card" data-fstep="1">
+                  <span class="step-card__num">Paso 2 · Escudo Natural</span>
+                  <span class="step-card__title">La piedra pómez + EPS retiene el Hg</span>
+                  <span class="step-card__hint">Retención global de 97–99% sin intoxicar bacterias</span>
+                </button>
+                <button type="button" class="step-card" data-fstep="2">
+                  <span class="step-card__num">Paso 3 · Limpieza Biológica</span>
+                  <span class="step-card__title">Bacterias expulsan el Hg en lodos</span>
+                  <span class="step-card__hint">Eficiencia real de 80–90% en matriz de relave</span>
+                </button>
+                <button type="button" class="step-card" data-fstep="3">
+                  <span class="step-card__num">Paso 4 · Fijación Segura</span>
+                  <span class="step-card__title">El azufre lo vuelve piedra estable</span>
+                  <span class="step-card__hint">Captura &gt; 99% del vapor como cinabrio (HgS)</span>
+                </button>
+              </div>
+
+              <div class="friendly-box">
+                <div class="svg-frame">
+                  <svg id="friendly-svg" viewBox="0 0 560 280" width="100%" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Ilustración animada de los 4 pasos de biorremediación">
+                    <defs>
+                      <marker id="f-arr-ink" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M 0 1.5 L 9 5 L 0 8.5 z" fill="#1D1B18"/></marker>
+                      <marker id="f-arr-blue" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M 0 1.5 L 9 5 L 0 8.5 z" fill="#1F4E9C"/></marker>
+                      <marker id="f-arr-gold" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M 0 1.5 L 9 5 L 0 8.5 z" fill="#B07D14"/></marker>
+                      <marker id="f-arr-ok" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M 0 1.5 L 9 5 L 0 8.5 z" fill="#2E7D4F"/></marker>
+                    </defs>
+                    <rect width="560" height="280" fill="#F7F4EC"/>
+                    <line x1="16" y1="242" x2="544" y2="242" stroke="#DCD5C7" stroke-width="1.5"/>
+
+                    <g id="f-group-1">
+                      <polygon points="36,95 112,95 112,150 74,185 36,150" fill="#FCFAF6" stroke="#1D1B18" stroke-width="2"/>
+                      <line x1="42" y1="138" x2="106" y2="138" stroke="#B07D14" stroke-width="2.5" stroke-dasharray="4 3"/>
+                      <text x="74" y="118" font-family="Roboto Condensed, sans-serif" font-weight="700" font-size="11" fill="#1D1B18" text-anchor="middle">SEPARADOR</text>
+                      <text x="74" y="131" font-family="monospace" font-size="9" fill="#4F4B43" text-anchor="middle">Au: 5.5 g/t</text>
+                      <path id="f-pipe-sand" d="M 74 185 L 74 222" stroke="#B07D14" stroke-width="2.5" marker-end="url(#f-arr-gold)" class="pipe-flow"/>
+                      <text x="74" y="235" font-family="Roboto Condensed, sans-serif" font-weight="700" font-size="9.5" fill="#8A6410" text-anchor="middle">Oro fino 21.5%</text>
+                    </g>
+
+                    <path id="f-pipe-1to2" d="M 112 125 L 166 125" stroke="#1F4E9C" stroke-width="3" marker-end="url(#f-arr-blue)" class="pipe-flow"/>
+
+                    <g id="f-group-2">
+                      <path d="M 172 92 Q 280 54 388 92 Z" fill="#E3EAF6" stroke="#1F4E9C" stroke-width="2"/>
+                      <text x="280" y="83" font-family="Roboto Condensed, sans-serif" font-weight="700" font-size="10" fill="#1F4E9C" text-anchor="middle">TECHO CERRADO (NO ESCAPA VAPOR)</text>
+                      <rect x="172" y="92" width="216" height="130" fill="#FCFAF6" stroke="#1D1B18" stroke-width="2"/>
+                      <rect x="174" y="112" width="212" height="108" fill="#E3EAF6" opacity="0.75"/>
+                      <line x1="174" y1="112" x2="386" y2="112" stroke="#1F4E9C" stroke-width="1.5"/>
+                      <g id="f-bubbles">
+                        <circle cx="204" cy="200" r="3" fill="#1F4E9C"><animate attributeName="cy" values="205;116" dur="1.5s" repeatCount="indefinite"/><animate attributeName="opacity" values="0.9;0" dur="1.5s" repeatCount="indefinite"/></circle>
+                        <circle cx="215" cy="190" r="2.5" fill="#1F4E9C"><animate attributeName="cy" values="200;118" dur="1.2s" repeatCount="indefinite"/><animate attributeName="opacity" values="0.9;0" dur="1.2s" repeatCount="indefinite"/></circle>
+                      </g>
+                      <g id="f-pumice">
+                        <rect x="234" y="132" width="42" height="54" rx="3" fill="#F3E7C6" stroke="#B07D14" stroke-width="2"/>
+                        <rect x="288" y="132" width="42" height="54" rx="3" fill="#F3E7C6" stroke="#B07D14" stroke-width="2"/>
+                        <circle cx="248" cy="150" r="4" fill="#B07D14"/><circle cx="262" cy="166" r="4.5" fill="#8A6410"/>
+                        <circle cx="302" cy="152" r="4.5" fill="#8A6410"/><circle cx="316" cy="168" r="4" fill="#B07D14"/>
+                        <text x="282" y="199" font-family="Roboto Condensed, sans-serif" font-weight="700" font-size="10.5" fill="#8A6410" text-anchor="middle">Pómez + EPS (97–99% Hg)</text>
+                      </g>
+                      <g id="f-bacteria">
+                        <ellipse cx="206" cy="160" rx="9" ry="5" fill="#2E7D4F"/>
+                        <ellipse cx="354" cy="152" rx="9" ry="5" fill="#2E7D4F"/>
+                        <ellipse cx="352" cy="176" rx="9" ry="5" fill="#2E7D4F"/>
+                        <text x="280" y="215" font-family="Roboto Condensed, sans-serif" font-weight="700" font-size="10" fill="#2E7D4F" text-anchor="middle">Bacterias en lodos (80–90% ef.) + Aire</text>
+                      </g>
+                    </g>
+
+                    <path id="f-pipe-vapor" d="M 280 68 L 280 28 L 468 28 L 468 78" fill="none" stroke="#B3261E" stroke-width="2.5" marker-end="url(#f-arr-ink)" class="pipe-flow"/>
+                    <text x="374" y="21" font-family="Roboto Condensed, sans-serif" font-weight="700" font-size="10" fill="#B3261E" text-anchor="middle">Vapor de mercurio conducido</text>
+
+                    <g id="f-group-3">
+                      <rect x="434" y="84" width="68" height="138" rx="4" fill="#FCFAF6" stroke="#1D1B18" stroke-width="2"/>
+                      <rect x="440" y="96" width="56" height="72" fill="#F3E7C6"/>
+                      <rect x="440" y="168" width="56" height="46" fill="#B3261E" opacity="0.88"/>
+                      <text x="468" y="132" font-family="Roboto Condensed, sans-serif" font-weight="700" font-size="10.5" fill="#1D1B18" text-anchor="middle">AZUFRE</text>
+                      <text x="468" y="144" font-family="Roboto Condensed, sans-serif" font-size="9.5" fill="#4F4B43" text-anchor="middle">Agrícola</text>
+                      <text x="468" y="193" font-family="Roboto Condensed, sans-serif" font-weight="700" font-size="10.5" fill="#FFFFFF" text-anchor="middle">CINABRIO</text>
+                      <text x="468" y="205" font-family="monospace" font-size="9" fill="#FBE3E0" text-anchor="middle">Piedra HgS</text>
+                    </g>
+
+                    <path id="f-pipe-clean" d="M 388 145 L 424 145" stroke="#2E7D4F" stroke-width="3" marker-end="url(#f-arr-ok)" class="pipe-flow"/>
+                    <text x="406" y="136" font-family="Roboto Condensed, sans-serif" font-weight="700" font-size="9.5" fill="#2E7D4F" text-anchor="middle">&lt; 5 ppb</text>
+                  </svg>
+                </div>
+
+                <div class="friendly-explain">
+                  <span id="f-step-tag" class="tag tag--gold">Paso 1 de 4 · Recuperación gravimétrica previa</span>
+                  <h2 id="f-step-title" style="margin-top:8px;">Rescatamos oro fino (5.5 g/t) y colamos arenas gruesas</h2>
+                  <p id="f-step-desc" style="margin-top:8px;"></p>
+                  <div id="f-step-analogy" class="friendly-analogy"></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Comparador Crudo vs Tratado -->
+            <div class="card">
+              <div class="card__head">
+                <div>
+                  <h3>Impacto Ambiental y Recuperación Económica</h3>
+                  <h2 style="margin-top:4px;">Comparador Visual: Relave Crudo vs. Agua Tratada + Oro Rescatado</h2>
+                </div>
+                <button type="button" id="btnGoBioTech" class="btn btn--blue">Abrir Simulador PFD y Balance &rarr;</button>
+              </div>
+
+              <div class="comp-toggle">
+                <button type="button" id="comp-btn-raw" class="comp-choice is-active">
+                  <span class="tag tag--bad">Antes del tratamiento · Peligro Crítico</span>
+                  <div style="font:700 15px/1.3 var(--f-serif); margin-top:6px;">Relave Aurífero Sin Tratar (10,000 ppb Hg)</div>
+                  <div class="small muted">Pulpa contaminada con 10 mg/L de mercurio y 5.5 g/t de oro perdido</div>
+                </button>
+                <button type="button" id="comp-btn-clean" class="comp-choice">
+                  <span class="tag tag--ok">Después del tren U-101 + SBR + Azufre</span>
+                  <div style="font:700 15px/1.3 var(--f-serif); margin-top:6px;">Agua Segura (&lt; 5 ppb) + Oro Fino + Cinabrio HgS</div>
+                  <div class="small muted">Cumple semáforo verde ambiental y rescata ~1.18 g Au/t</div>
+                </button>
+              </div>
+
+              <div class="grid grid--2">
+                <div class="card--paper">
+                  <div class="meter-row" style="margin-top:0;">
+                    <div class="meter-head">
+                      <strong>Mercurio disuelto en matriz agua</strong>
+                      <span id="comp-water-val" class="mono" style="color:var(--bad); font-weight:700;">10,000 ppb (Rojo &gt; 20 ppb)</span>
+                    </div>
+                    <div class="meter-track"><div id="comp-water-bar" class="meter-fill" style="width:100%; background:var(--bad);"></div></div>
+                    <p id="comp-water-note" class="small muted" style="margin:6px 0 0;"></p>
+                  </div>
+                </div>
+                <div class="card--paper">
+                  <div class="meter-row" style="margin-top:0;">
+                    <div class="meter-head">
+                      <strong>Valor rescatado y mercurio inmovilizado</strong>
+                      <span id="comp-safe-val" class="mono" style="color:var(--ink-3); font-weight:700;">0% oro rescatado · 0% HgS</span>
+                    </div>
+                    <div class="meter-track"><div id="comp-safe-bar" class="meter-fill" style="width:0%; background:var(--ok);"></div></div>
+                    <p id="comp-safe-note" class="small muted" style="margin:6px 0 0;"></p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- ===== SUB-VISTA BIO 2: RUTA TÉCNICA PFD, 5 FASES SBR Y BALANCE GLOBAL ===== -->
+          <div id="bioSubTecnica" class="view">
+            <!-- Control de las 5 Fases del Ciclo SBR -->
+            <div class="card">
+              <div class="card__head">
+                <div>
+                  <h3>Secuencia Operativa del Biorreactor R-101</h3>
+                  <h2 style="margin-top:4px;">Control Interactivo de las 5 Etapas del Ciclo SBR</h2>
+                </div>
+                <button type="button" id="btn-sbr-tour" class="btn btn--blue">
+                  <span id="sbr-tour-icon">&#9654;</span>
+                  <span id="sbr-tour-label">Simular Ciclo Automático</span>
+                </button>
+              </div>
+
+              <div class="phases-5" id="sbr-phase-buttons">
+                <button type="button" class="phase-btn is-active" data-phase="0"><div class="phase-btn__kicker"><span>Fase 01</span><span>20&rarr;100%</span></div><div class="phase-btn__name">1. Alimentación</div><div class="phase-btn__sub">Llenado + C/N + Langmuir</div></button>
+                <button type="button" class="phase-btn" data-phase="1"><div class="phase-btn__kicker"><span>Fase 02</span><span>Venturi ON</span></div><div class="phase-btn__name">2. Reacción Aeróbica</div><div class="phase-btn__sub">MerB/MerA &rarr; Hg⁰ &rarr; S</div></button>
+                <button type="button" class="phase-btn" data-phase="2"><div class="phase-btn__kicker"><span>Fase 03</span><span>Venturi OFF</span></div><div class="phase-btn__name">3. Decantación</div><div class="phase-btn__sub">Sedimentación en calma</div></button>
+                <button type="button" class="phase-btn" data-phase="3"><div class="phase-btn__kicker"><span>Fase 04</span><span>100&rarr;20%</span></div><div class="phase-btn__name">4. Vaciado</div><div class="phase-btn__sub">Descarga 80% agua limpia</div></button>
+                <button type="button" class="phase-btn" data-phase="4"><div class="phase-btn__kicker"><span>Fase 05</span><span>Purga Lodo</span></div><div class="phase-btn__name">5. Reposo</div><div class="phase-btn__sub">Control biomasa &le; 2.5 g/L</div></button>
+              </div>
+
+              <div class="phase-status">
+                <div style="max-width:740px;">
+                  <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-bottom:4px;">
+                    <span id="phase-badge" class="tag tag--blue">Fase 1 de 5</span>
+                    <strong id="phase-title" style="font-family:var(--f-serif); font-size:15px;"></strong>
+                  </div>
+                  <p id="phase-desc" class="small" style="color:var(--ink-2); margin:0;"></p>
+                </div>
+                <div style="display:flex; flex-direction:column; gap:6px; flex:none;">
+                  <span id="phase-chip-1" class="tag tag--gold">Venturi: Mezcla Suave</span>
+                  <span id="phase-chip-2" class="tag tag--ok">Cinética: Adsorción Langmuir</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Diagrama PFD SVG + Inspector de Equipos -->
+            <div class="grid grid--scatter">
+              <div class="card">
+                <div class="card__head">
+                  <div>
+                    <h3>Esquema de Proceso (PFD)</h3>
+                    <h2 style="margin-top:4px;">Planta Integrada U-101 &rarr; R-101 &rarr; T-101</h2>
+                  </div>
+                  <div class="badge-row">
+                    <span class="tag tag--blue">Pulpa</span>
+                    <span class="tag tag--ok">Agua Limpia</span>
+                    <span class="tag tag--bad">Vapor Hg⁰</span>
+                    <span class="tag tag--gold">Oro / S⁰</span>
+                  </div>
+                </div>
+
+                <div class="svg-frame">
+                  <svg id="pfd-svg" viewBox="0 0 1000 470" width="100%" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Diagrama de Flujo de Proceso PFD Interactivo">
+                    <defs>
+                      <marker id="m-blue" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M 0 1.5 L 9 5 L 0 8.5 z" fill="#1F4E9C"/></marker>
+                      <marker id="m-ok" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M 0 1.5 L 9 5 L 0 8.5 z" fill="#2E7D4F"/></marker>
+                      <marker id="m-gold" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M 0 1.5 L 9 5 L 0 8.5 z" fill="#B07D14"/></marker>
+                      <marker id="m-bad" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M 0 1.5 L 9 5 L 0 8.5 z" fill="#B3261E"/></marker>
+                      <clipPath id="clip-sbr-tank"><polygon points="306,142 654,142 630,372 330,372" /></clipPath>
+                      <clipPath id="clip-sulfur-col"><rect x="802" y="152" width="74" height="174" rx="3" /></clipPath>
+                    </defs>
+
+                    <g stroke="#E3DDD0" stroke-width="0.8">
+                      <line x1="0" y1="115" x2="1000" y2="115"/><line x1="0" y1="235" x2="1000" y2="235"/><line x1="0" y1="355" x2="1000" y2="355"/>
+                      <line x1="250" y1="0" x2="250" y2="470"/><line x1="500" y1="0" x2="500" y2="470"/><line x1="750" y1="0" x2="750" y2="470"/>
+                    </g>
+
+                    <!-- C1 -->
+                    <g>
+                      <path id="pfd-c1" d="M 12 192 L 60 192" stroke="#1F4E9C" stroke-width="3.2" fill="none" marker-end="url(#m-blue)" class="pipe-flow"/>
+                      <rect x="6" y="138" width="122" height="44" rx="3" fill="#FCFAF6" stroke="#DCD5C7"/>
+                      <text x="13" y="153" fill="#1F4E9C" font-family="Roboto Condensed, sans-serif" font-size="10.5" font-weight="700">C1 · RELAVE CRUDO</text>
+                      <text x="13" y="166" fill="#8A6410" font-family="monospace" font-size="9" font-weight="700">Au: 5.50 g/t</text>
+                      <text id="pfd-c1-val" x="13" y="177" fill="#B3261E" font-family="monospace" font-size="9">Hg: 10,000 ppb</text>
+                    </g>
+
+                    <!-- U-101 -->
+                    <g id="eq-separador" class="eq-hotspot eq-selected" data-eq="separador">
+                      <polygon class="eq-box" points="68,154 182,154 182,228 125,288 68,228" fill="#FCFAF6" stroke="#1D1B18" stroke-width="2"/>
+                      <line x1="74" y1="212" x2="176" y2="212" stroke="#7C776C" stroke-width="1.8" stroke-dasharray="4 3"/>
+                      <text x="125" y="178" fill="#1D1B18" font-family="Montserrat, sans-serif" font-size="12" font-weight="700" text-anchor="middle">U-101</text>
+                      <text x="125" y="192" fill="#1F4E9C" font-family="Roboto Condensed, sans-serif" font-size="10.5" font-weight="700" text-anchor="middle">SEPARADOR</text>
+                      <text x="125" y="204" fill="#4F4B43" font-size="9" text-anchor="middle">Gravimétrico</text>
+                      <text x="125" y="228" fill="#8A6410" font-family="monospace" font-size="8.5" font-weight="700" text-anchor="middle">Au &lt; 100 μm</text>
+                    </g>
+
+                    <!-- C2 -->
+                    <g>
+                      <path id="pfd-c2" d="M 125 288 L 125 352" stroke="#B07D14" stroke-width="2.8" fill="none" marker-end="url(#m-gold)" class="pipe-flow-slow"/>
+                      <rect x="44" y="358" width="162" height="48" rx="3" fill="#F3E7C6" stroke="#DEC484"/>
+                      <text x="125" y="373" fill="#8A6410" font-family="Roboto Condensed, sans-serif" font-size="10" font-weight="700" text-anchor="middle">C2 · ORO FINO + RECHAZO</text>
+                      <text id="pfd-c2-au" x="125" y="386" fill="#1D1B18" font-family="monospace" font-size="8.8" font-weight="700" text-anchor="middle">Au rec: 21.5% (1.18 g/t)</text>
+                      <text x="125" y="399" fill="#4F4B43" font-family="monospace" font-size="8.5" text-anchor="middle">Arenas &gt;0.85 mm (25% Hg)</text>
+                    </g>
+
+                    <!-- C3 -->
+                    <g>
+                      <path id="pfd-c3" d="M 182 192 L 300 192" stroke="#1F4E9C" stroke-width="3.2" fill="none" marker-end="url(#m-blue)" class="pipe-flow"/>
+                      <text x="241" y="182" fill="#1D1B18" font-family="Roboto Condensed, sans-serif" font-size="10.5" font-weight="700" text-anchor="middle">C3 · PULPA FINA</text>
+                      <text id="pfd-c3-val" x="241" y="206" fill="#4F4B43" font-family="monospace" font-size="9" text-anchor="middle">7,500 ppb (80%)</text>
+                    </g>
+
+                    <!-- D-101 -->
+                    <g id="eq-bacterias-top" class="eq-hotspot" data-eq="bacterias">
+                      <rect class="eq-box" x="200" y="66" width="84" height="52" rx="3" fill="#FCFAF6" stroke="#1D1B18" stroke-width="1.8"/>
+                      <text x="242" y="85" fill="#2E7D4F" font-family="Montserrat, sans-serif" font-size="11" font-weight="700" text-anchor="middle">D-101</text>
+                      <text x="242" y="98" fill="#1D1B18" font-size="8.5" font-weight="600" text-anchor="middle">Melaza+Urea+DAP</text>
+                      <text x="242" y="110" fill="#4F4B43" font-family="monospace" font-size="8.5" text-anchor="middle">3,500 mg/L</text>
+                      <path id="pfd-c4" d="M 242 118 L 242 154 L 302 154" stroke="#2E7D4F" stroke-width="2.4" fill="none" marker-end="url(#m-ok)" class="pipe-flow"/>
+                      <text x="242" y="57" fill="#2E7D4F" font-family="Roboto Condensed, sans-serif" font-size="10" font-weight="700" text-anchor="middle">C4 · SUSTRATOS C/N</text>
+                    </g>
+
+                    <!-- R-101 SBR -->
+                    <g>
+                      <path d="M 302 140 Q 480 76 658 140 Z" fill="#E3EAF6" stroke="#1F4E9C" stroke-width="2"/>
+                      <text x="480" y="115" fill="#1F4E9C" font-family="Roboto Condensed, sans-serif" font-size="11" font-weight="700" text-anchor="middle">CUBIERTA HERMÉTICA HDPE — CAPTURA OFF-GAS Hg⁰</text>
+                      <text x="480" y="129" fill="#4F4B43" font-size="9" text-anchor="middle">R-101 · Biorreactor Discontinuo Secuencial (SBR)</text>
+                      <polygon points="302,140 658,140 634,376 326,376" fill="#FCFAF6" stroke="#1D1B18" stroke-width="2.2"/>
+                      <g clip-path="url(#clip-sbr-tank)">
+                        <rect id="pfd-water-rect" x="302" y="152" width="356" height="224" fill="#E3EAF6" opacity="0.85" class="smooth-level"/>
+                        <line id="pfd-water-line" x1="302" y1="152" x2="658" y2="152" stroke="#1F4E9C" stroke-width="2" class="smooth-level"/>
+                        <rect id="pfd-sludge-rect" x="302" y="344" width="356" height="32" fill="#DCD5C7" class="smooth-level"/>
+                        <line id="pfd-sludge-line" x1="302" y1="344" x2="658" y2="344" stroke="#7C776C" stroke-width="1.5" stroke-dasharray="4 3" class="smooth-level"/>
+                      </g>
+                      <g id="eq-bacterias" class="eq-hotspot" data-eq="bacterias">
+                        <text x="480" y="363" fill="#1D1B18" font-family="Roboto Condensed, sans-serif" font-size="10" font-weight="700" text-anchor="middle">CONSORCIO OPERÓN mer (MerB / MerA · Ef. Lodos 80–90%)</text>
+                      </g>
+                      <g id="eq-venturi" class="eq-hotspot" data-eq="venturi">
+                        <path d="M 350 306 L 328 306 L 328 194 L 350 194" fill="none" stroke="#1F4E9C" stroke-width="2"/>
+                        <polygon class="eq-box" points="342,190 364,190 357,230 364,302 342,302 349,230" fill="#FCFAF6" stroke="#1F4E9C" stroke-width="1.8"/>
+                        <text x="353" y="318" fill="#1F4E9C" font-family="Roboto Condensed, sans-serif" font-size="9.5" font-weight="700" text-anchor="middle">VENTURI</text>
+                        <g id="pfd-bubbles">
+                          <circle cx="349" cy="292" r="2.5" fill="#1F4E9C"><animate attributeName="cy" values="292;156" dur="1.4s" repeatCount="indefinite"/><animate attributeName="opacity" values="0.95;0" dur="1.4s" repeatCount="indefinite"/></circle>
+                          <circle cx="357" cy="278" r="2.2" fill="#1F4E9C"><animate attributeName="cy" values="282;154" dur="1.1s" repeatCount="indefinite"/><animate attributeName="opacity" values="0.95;0" dur="1.1s" repeatCount="indefinite"/></circle>
+                          <circle cx="352" cy="258" r="2.8" fill="#1F4E9C"><animate attributeName="cy" values="288;158" dur="1.7s" repeatCount="indefinite"/><animate attributeName="opacity" values="0.9;0" dur="1.7s" repeatCount="indefinite"/></circle>
+                        </g>
+                      </g>
+                      <g id="eq-pomez" class="eq-hotspot" data-eq="pomez">
+                        <line x1="394" y1="224" x2="554" y2="224" stroke="#4F4B43" stroke-width="2"/>
+                        <line x1="420" y1="224" x2="420" y2="234" stroke="#4F4B43" stroke-width="1.5"/>
+                        <line x1="474" y1="224" x2="474" y2="234" stroke="#4F4B43" stroke-width="1.5"/>
+                        <line x1="528" y1="224" x2="528" y2="234" stroke="#4F4B43" stroke-width="1.5"/>
+                        <rect class="eq-box" x="400" y="234" width="40" height="70" rx="3" fill="#F3E7C6" stroke="#B07D14" stroke-width="1.8" stroke-dasharray="3 2"/>
+                        <circle cx="414" cy="252" r="4" fill="#B07D14"/><circle cx="427" cy="268" r="4.5" fill="#8A6410"/><circle cx="415" cy="285" r="4" fill="#B07D14"/>
+                        <rect class="eq-box" x="454" y="234" width="40" height="70" rx="3" fill="#F3E7C6" stroke="#B07D14" stroke-width="1.8" stroke-dasharray="3 2"/>
+                        <circle cx="468" cy="250" r="4.5" fill="#8A6410"/><circle cx="481" cy="270" r="4" fill="#B07D14"/><circle cx="469" cy="288" r="4.5" fill="#8A6410"/>
+                        <rect class="eq-box" x="508" y="234" width="40" height="70" rx="3" fill="#F3E7C6" stroke="#B07D14" stroke-width="1.8" stroke-dasharray="3 2"/>
+                        <circle cx="522" cy="254" r="4" fill="#B07D14"/><circle cx="535" cy="268" r="4.5" fill="#8A6410"/><circle cx="524" cy="286" r="4" fill="#B07D14"/>
+                        <text x="474" y="318" fill="#8A6410" font-family="Roboto Condensed, sans-serif" font-size="10" font-weight="700" text-anchor="middle">PIEDRA PÓMEZ + BIOFILM EPS (Retención 97–99% Hg)</text>
+                      </g>
+                      <g id="eq-decantador" class="eq-hotspot" data-eq="decantador">
+                        <rect id="pfd-dec-float" class="eq-box" x="566" y="148" width="32" height="12" rx="2" fill="#2E7D4F" stroke="#1D1B18" stroke-width="1.2"/>
+                        <line id="pfd-dec-arm" x1="582" y1="160" x2="634" y2="232" stroke="#2E7D4F" stroke-width="3.2" stroke-linecap="round" class="smooth-level"/>
+                        <circle cx="634" cy="232" r="4" fill="#FCFAF6" stroke="#2E7D4F" stroke-width="2"/>
+                        <text x="602" y="180" fill="#2E7D4F" font-family="Roboto Condensed, sans-serif" font-size="9.5" font-weight="700" text-anchor="middle">DECANTADOR</text>
+                      </g>
+                      <g>
+                        <path id="pfd-c6" d="M 639 232 L 738 232" stroke="#2E7D4F" stroke-width="3.2" fill="none" marker-end="url(#m-ok)" class="pipe-idle"/>
+                        <text x="690" y="219" fill="#2E7D4F" font-family="Roboto Condensed, sans-serif" font-size="10.5" font-weight="700" text-anchor="middle">C6 · AGUA TRATADA</text>
+                        <text id="pfd-c6-val" x="690" y="246" fill="#4F4B43" font-family="monospace" font-size="9" text-anchor="middle">4.88 ppb (Verde)</text>
+                      </g>
+                      <g>
+                        <path id="pfd-c5" d="M 480 376 L 480 426" stroke="#B07D14" stroke-width="2.8" fill="none" marker-end="url(#m-gold)" class="pipe-idle"/>
+                        <polygon points="471,394 489,394 480,404" fill="#B07D14"/><polygon points="471,414 489,414 480,404" fill="#B07D14"/>
+                        <text x="480" y="443" fill="#8A6410" font-family="Roboto Condensed, sans-serif" font-size="10.5" font-weight="700" text-anchor="middle">C5 · PURGA DE EXCESO DE LODOS (CONTROL X &le; 2.5 g/L EN REPOSO)</text>
+                      </g>
+                    </g>
+
+                    <!-- C7 + T-101 + C8 -->
+                    <g>
+                      <path id="pfd-c7" d="M 480 107 L 480 40 L 839 40 L 839 116" stroke="#B3261E" stroke-width="2.8" fill="none" marker-end="url(#m-bad)" class="pipe-idle"/>
+                      <rect x="556" y="22" width="212" height="24" rx="3" fill="#FBE3E0" stroke="#E7B1AC"/>
+                      <text x="662" y="38" fill="#B3261E" font-family="Roboto Condensed, sans-serif" font-size="10.5" font-weight="700" text-anchor="middle">C7 · OFF-GAS CON VAPOR Hg(0) VOLÁTIL</text>
+                    </g>
+
+                    <g id="eq-azufre" class="eq-hotspot" data-eq="azufre">
+                      <rect class="eq-box" x="794" y="124" width="90" height="214" rx="4" fill="#FCFAF6" stroke="#1D1B18" stroke-width="2"/>
+                      <g clip-path="url(#clip-sulfur-col)">
+                        <rect x="802" y="152" width="74" height="174" fill="#F3E7C6"/>
+                        <rect id="pfd-cinnabar-rect" x="802" y="272" width="74" height="54" fill="#B3261E" class="smooth-level"/>
+                      </g>
+                      <text x="839" y="184" fill="#8A6410" font-family="Roboto Condensed, sans-serif" font-size="11" font-weight="700" text-anchor="middle">AZUFRE (S⁰)</text>
+                      <text x="839" y="197" fill="#4F4B43" font-family="monospace" font-size="8.5" text-anchor="middle">Lecho 4.0 g/L</text>
+                      <text x="839" y="308" fill="#FFFFFF" font-family="Roboto Condensed, sans-serif" font-size="10.5" font-weight="700" text-anchor="middle">CINABRIO HgS</text>
+                      <text x="839" y="355" fill="#1D1B18" font-family="Montserrat, sans-serif" font-size="11" font-weight="700" text-anchor="middle">T-101 · Trampa S</text>
+                      <text x="839" y="368" fill="#4F4B43" font-family="monospace" font-size="9" text-anchor="middle">Remoción &gt; 99% Hg⁰</text>
+                    </g>
+
+                    <g>
+                      <path id="pfd-c8" d="M 884 286 L 986 286" stroke="#2E7D4F" stroke-width="2.8" fill="none" marker-end="url(#m-ok)" class="pipe-idle"/>
+                      <text x="935" y="273" fill="#2E7D4F" font-family="Roboto Condensed, sans-serif" font-size="10.5" font-weight="700" text-anchor="middle">C8 · AIRE LIMPIO</text>
+                      <text x="935" y="300" fill="#4F4B43" font-family="monospace" font-size="9" text-anchor="middle">&lt; 1% traza</text>
+                    </g>
+                  </svg>
+                </div>
+
+                <div class="pill-row" id="eq-pills">
+                  <button type="button" class="eq-pill is-active" data-eq="separador">Separador U-101</button>
+                  <button type="button" class="eq-pill" data-eq="pomez">Piedra Pómez + EPS</button>
+                  <button type="button" class="eq-pill" data-eq="venturi">Aireación Venturi</button>
+                  <button type="button" class="eq-pill" data-eq="bacterias">Consorcio MerB / MerA</button>
+                  <button type="button" class="eq-pill" data-eq="decantador">Decantador Flotante</button>
+                  <button type="button" class="eq-pill" data-eq="azufre">Trampa de Azufre T-101</button>
+                </div>
+              </div>
+
+              <aside class="card" aria-live="polite">
+                <div class="card__head">
+                  <div>
+                    <h3>Inspector de Unidad de Proceso</h3>
+                    <h2 id="insp-title" style="margin-top:4px;">Separador Gravimétrico (U-101)</h2>
+                  </div>
+                  <span id="insp-tag" class="tag tag--gold">Pretratamiento + Oro</span>
+                </div>
+                <p id="insp-subtitle" class="small muted" style="margin-top:-6px;"></p>
+                <div class="spec-block"><div class="spec-block__label">Función operativa</div><p id="insp-what" style="margin:0; font-size:13.5px;"></p></div>
+                <div class="spec-block"><div class="spec-block__label">Regla de control en proceso aurífero</div><p id="insp-why" style="margin:0; font-size:13.5px;"></p></div>
+                <div class="eq-formula">
+                  <div class="spec-block__label" style="color:var(--blue);">Ecuación y Parámetros Calibrados</div>
+                  <div id="insp-eq" class="mono" style="font-weight:700; color:var(--ink); margin-bottom:4px;"></div>
+                  <p id="insp-params" class="small" style="margin:0; color:var(--ink-2);"></p>
+                </div>
+              </aside>
+            </div>
+
+            <!-- Simulador Multiciclo y Balance Global de Oro y Mercurio -->
+            <div class="card">
+              <div class="card__head">
+                <div>
+                  <h3>Auditoría de Conservación de Materia (Parámetros Acotados a Literatura)</h3>
+                  <h2 style="margin-top:4px;">Simulador Multiciclo y Balance Global de Oro y Mercurio</h2>
+                </div>
+                <span class="tag tag--ok">Error de cierre Hg: 0.00e+00 mg/L</span>
+              </div>
+
+              <div class="card--paper" style="margin-bottom:16px;">
+                <div class="grid grid--2" style="gap:14px;">
+                  <div>
+                    <div style="display:flex; justify-content:space-between; align-items:center; gap:8px; margin-bottom:4px;">
+                      <label for="slider-sbr-cycles" style="font:700 12.5px/1.2 var(--f-serif);">1. Ciclos SBR operados (Renovación 80%/lote):</label>
+                      <span id="lbl-cycles-badge" class="tag tag--blue mono">3 Ciclos</span>
+                    </div>
+                    <input id="slider-sbr-cycles" type="range" min="1" max="3" step="1" value="3" />
+                  </div>
+                  <div>
+                    <div style="display:flex; justify-content:space-between; align-items:center; gap:8px; margin-bottom:4px;">
+                      <label for="slider-au-rec" style="font:700 12.5px/1.2 var(--f-serif);">2. Recuperación Oro Fino (&lt; 100 μm) U-101:</label>
+                      <span id="lbl-au-badge" class="tag tag--gold mono">21.5%</span>
+                    </div>
+                    <input id="slider-au-rec" type="range" min="19.8" max="22.7" step="0.1" value="21.5" />
+                  </div>
+                  <div>
+                    <div style="display:flex; justify-content:space-between; align-items:center; gap:8px; margin-bottom:4px;">
+                      <label for="slider-bio-eff" style="font:700 12.5px/1.2 var(--f-serif);">3. Eficiencia Reacción Biológica en Lodos (R-101):</label>
+                      <span id="lbl-bio-badge" class="tag tag--blue mono">90.0%</span>
+                    </div>
+                    <input id="slider-bio-eff" type="range" min="80.0" max="90.0" step="0.5" value="90.0" />
+                  </div>
+                  <div>
+                    <div style="display:flex; justify-content:space-between; align-items:center; gap:8px; margin-bottom:4px;">
+                      <label for="slider-ads-eff" style="font:700 12.5px/1.2 var(--f-serif);">4. Retención Bioadsorción Pómez + EPS (R-101):</label>
+                      <span id="lbl-ads-badge" class="tag tag--ok mono">99.0%</span>
+                    </div>
+                    <input id="slider-ads-eff" type="range" min="97.0" max="99.0" step="0.1" value="99.0" />
+                  </div>
+                </div>
+              </div>
+
+              <div class="grid grid--4" style="margin-bottom:16px;">
+                <div class="kpi-card">
+                  <div class="kpi-card__top"><span>Oro Fino Rescatado</span><span id="kpi-au-pct" class="tag tag--gold">21.5%</span></div>
+                  <div id="kpi-au-val" class="kpi-card__val">1.18 g Au/t</div>
+                  <div class="kpi-card__note">De ley residual 5.50 g/t Au</div>
+                </div>
+                <div class="kpi-card">
+                  <div class="kpi-card__top"><span>Fijado en Cinabrio (HgS)</span><span id="kpi-hgs-pct" class="tag tag--bad">66.49%</span></div>
+                  <div id="kpi-hgs-val" class="kpi-card__val">17.29 mg/L</div>
+                  <div class="kpi-card__note">Remoción gas T-101: 99.5%</div>
+                </div>
+                <div class="kpi-card">
+                  <div class="kpi-card__top"><span>Separador + Pómez/EPS</span><span id="kpi-solid-pct" class="tag tag--gold">33.13%</span></div>
+                  <div id="kpi-solid-val" class="kpi-card__val">8.61 mg/L</div>
+                  <div class="kpi-card__note">25% U-101 + biopelícula EPS</div>
+                </div>
+                <div class="kpi-card">
+                  <div class="kpi-card__top"><span>Efluente Agua (ppb)</span><span id="kpi-eff-sem" class="semaforo-pill semaforo-pill--ok"><span class="semaforo-dot" style="background:var(--ok);"></span>Verde</span></div>
+                  <div id="kpi-eff-conc" class="kpi-card__val" style="color:var(--ok);">4.88 ppb</div>
+                  <div id="kpi-eff-note" class="kpi-card__note">Desde 10,000 ppb (99.95% rem.)</div>
+                </div>
+              </div>
+
+              <div style="margin-bottom:16px;">
+                <div style="display:flex; justify-content:space-between; font-size:12.5px; margin-bottom:6px; gap:8px; flex-wrap:wrap;">
+                  <strong>Distribución Porcentual de la Masa Total de Mercurio (100.00%)</strong>
+                  <span id="lbl-hg-in-summary" class="mono muted"></span>
+                </div>
+                <div class="stacked-bar">
+                  <div id="seg-sep" class="stacked-seg" style="width:25%; background:var(--gold);">25.0% Sep.</div>
+                  <div id="seg-hgs" class="stacked-seg" style="width:66.5%; background:var(--bad);">66.5% Cinabrio HgS</div>
+                  <div id="seg-pomez" class="stacked-seg" style="width:8.1%; background:var(--blue);">8.1%</div>
+                  <div id="seg-eff" class="stacked-seg" style="width:0.4%; background:var(--ok);"></div>
+                </div>
+              </div>
+
+              <div class="table-wrap">
+                <table class="inst-table">
+                  <thead>
+                    <tr>
+                      <th style="width:44px;">#</th>
+                      <th>Compartimento / Corriente del Balance Global</th>
+                      <th>Fase</th>
+                      <th class="num">Masa [mg Hg/L eq.]</th>
+                      <th class="num">Fracción [%]</th>
+                    </tr>
+                  </thead>
+                  <tbody id="balance-tbody"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </section>
+
+      </main>
+    </div>
+  </div>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <script src="app.js?v=5"></script>
+</body>
+</html>

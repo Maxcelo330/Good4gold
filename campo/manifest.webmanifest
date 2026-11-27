@@ -1,0 +1,20 @@
+{
+  "id": "./",
+  "name": "Aurum80 Campo",
+  "short_name": "Aurum80 Campo",
+  "description": "Herramienta de campo de Aurum80 para técnicos: registro de puntos, fotos y ubicación, también sin señal.",
+  "lang": "es-BO",
+  "dir": "ltr",
+  "start_url": "./#/campo",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#1D1B18",
+  "theme_color": "#1D1B18",
+  "categories": ["utilities", "productivity"],
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

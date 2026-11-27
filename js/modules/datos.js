@@ -20,7 +20,7 @@
       return el('div', { class: 'readreport__block' },
         el('h4', null, `${k === 'operadores' ? 'Operadores' : 'Pasivos'} · ${U.fmt(i.filas)} filas`), el('div', { class: 'cell-sub' }, `Hoja: ${i.hoja}`),
         i.faltantes.length ? el('div', { class: 'callout callout--warn' }, 'Faltan columnas obligatorias: ', el('strong', null, i.faltantes.join(', '))) : el('div', { class: 'callout' }, 'Columnas obligatorias completas.'),
-        el('div', { class: 'tags' }, i.reconocidas.map((r) => el('span', { class: 'tag' }, `${r.columna} → ${r.campo}`))),
+        el('div', { class: 'tags' }, i.reconocidas.map((r) => el('span', { class: 'tag' }, r.columna === r.campo ? r.columna : `${r.columna} → ${r.campo}`))),
         i.ignoradas.length ? el('details', null, el('summary', null, `${i.ignoradas.length} columnas ignoradas`), el('div', { class: 'tags' }, i.ignoradas.map((c) => el('span', { class: 'tag tag--muted' }, c)))) : null);
     }));
   }
@@ -69,7 +69,7 @@
         el('div', { class: 'tags' }, i.ids.slice(0, 30).map((id) => el('button', { type: 'button', class: 'tag tag--btn', onclick: () => abrirRegistro(id) }, id)), i.ids.length > 30 ? el('span', { class: 'muted' }, `… y ${i.ids.length - 30} más`) : null))))) : ui().empty('Sin observaciones: la base pasa todas las validaciones.');
     const comp = S.completitud();
 
-    root.appendChild(el('div', { class: 'grid grid--2' }, ui().card('Origen de los datos', origen), G4G.api.activo() ? ui().card('Servidor del municipio', el('div', null, el('p', null, 'Conectado a la base del municipio (Google Apps Script).'), el('p', { class: 'muted small mono' }, G4G.config.backend.url))) : ui().card('Conexión en línea (solo lectura)', remota)));
+    root.appendChild(el('div', { class: 'grid grid--2' }, ui().card('Origen de los datos', origen), G4G.api.activo() ? ui().card('Servidor del municipio', el('div', null, el('p', null, 'Conectado a la base del municipio (Google Apps Script).'), el('p', { class: 'muted small mono', style: { overflowWrap: 'anywhere' } }, G4G.config.backend.url))) : ui().card('Conexión en línea (solo lectura)', remota)));
     root.appendChild(ui().card('Informe de lectura', informeLectura(meta)));
     root.appendChild(ui().card('Calidad y validación de la base', [
       el('div', { class: 'quality quality--row' },

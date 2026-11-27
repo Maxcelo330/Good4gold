@@ -23,7 +23,7 @@
       if (!j.ok) { const e = new Error(j.error || 'Error del servidor.'); e.codigo = j.codigo; throw e; }
       return j;
     } catch (e) {
-      if (e.name === 'AbortError') throw new Error('El servidor no respondió a tiempo. Revise su conexión.');
+      if (e.name === 'AbortError') throw new Error('El servidor no respondió a tiempo. Revisa tu conexión.');
       if (e instanceof TypeError) throw new Error('Sin conexión con el servidor.');
       throw e;
     } finally { clearTimeout(t); }
@@ -41,6 +41,17 @@
     denunciasMapa: () => llamar('denunciasMapa'),
     denuncias: (token) => llamar('denuncias', { token }),
     estadoDenuncia: (token, id, estado, nota) => llamar('estadoDenuncia', { token, id, estado, nota }),
-    foto: (token, id) => llamar('foto', { token, id }, 45000)
+    foto: (token, id, tabla) => llamar('foto', { token, id, tabla }, 45000),
+    /* Denuncia aceptada -> punto por verificar (autoridad). */
+    aceptarDenuncia: (token, id, nota) => llamar('aceptarDenuncia', { token, id, nota }),
+    /* Muestras de campo (autoridad y técnico). */
+    guardarMuestra: (token, muestra) => llamar('guardarMuestra', { token, muestra }, 60000),
+    muestras: (token) => llamar('muestras', { token }),
+    /* Cooperativas y empresas. */
+    miOperador: (token) => llamar('miOperador', { token }),
+    inscribir: (token, programa, mensaje) => llamar('inscribir', { token, programa, mensaje }),
+    /* Autoridad: solicitudes de inscripción. */
+    inscripciones: (token) => llamar('inscripciones', { token }),
+    estadoInscripcion: (token, id, estado, nota) => llamar('estadoInscripcion', { token, id, estado, nota })
   };
 })();

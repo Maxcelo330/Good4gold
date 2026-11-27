@@ -8,7 +8,7 @@
   --surface: #FCFAF6;
   --ink: #1D1B18;
   --ink-2: #4F4B43;
-  --ink-3: #7C776C;
+  --ink-3: #6B665C;
   --line: #DCD5C7;
   --line-2: #EBE5D9;
   --gold: #B07D14;
@@ -129,3 +129,6 @@ button { cursor: pointer; }
   .topbar { position: static; background: none; border-bottom: 2px solid #000; }
   body { background: #fff; }
 }
+
+/* Menú lateral: si hay muchas secciones (autoridades) se desplaza dentro de su columna. */
+.side .nav { overflow-y: auto; min-height: 0; }

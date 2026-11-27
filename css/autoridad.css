@@ -1,0 +1,221 @@
+/* Estilos del panel de autoridades: resumen, denuncias, solicitudes, monitoreo, riesgos y muestras.
+   Usa los tokens de base.css. Estados siempre con forma y color; botones de 44 px en pantalla táctil. */
+
+/* ---- Indicadores clicables del Resumen ---- */
+.akpis { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+.akpi {
+  position: relative; display: grid; align-content: start; gap: 2px; min-width: 0; min-height: 44px; text-align: left;
+  padding: 14px 34px 12px 16px; background: var(--surface); border: 1px solid var(--line); border-top: 3px solid var(--ink-3); border-radius: var(--radius); color: var(--ink);
+}
+button.akpi { cursor: pointer; }
+button.akpi:hover { background: #F6F1E5; border-color: var(--ink-3); }
+button.akpi::after { content: "\203A"; position: absolute; right: 14px; top: 50%; transform: translateY(-50%); font: 700 22px/1 var(--f-cond); color: var(--ink-3); }
+.akpi--ok { border-top-color: var(--ok); } .akpi--mid { border-top-color: var(--mid); } .akpi--bad { border-top-color: var(--bad); }
+.akpi--risk { border-top-color: var(--pasivo-2); } .akpi--wait { border-top-color: var(--line); color: var(--ink-3); }
+.akpi__label { font: 700 12px/1.25 var(--f-cond); letter-spacing: .07em; text-transform: uppercase; color: var(--ink-2); }
+.akpi__value { font: 700 34px/1.05 var(--f-cond); font-variant-numeric: tabular-nums; margin: 4px 0 2px; }
+.akpi__sub { font-size: 12.5px; line-height: 1.35; color: var(--ink-3); }
+.abloque { margin-top: 16px; }
+
+/* ---- Barras horizontales simples ---- */
+.abars { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
+.abars__row { width: 100%; display: grid; grid-template-columns: minmax(96px, 150px) minmax(0, 1fr) auto; gap: 10px; align-items: center; padding: 6px 4px; border: 0; background: none; text-align: left; font-size: 13.5px; color: var(--ink); min-height: 36px; }
+button.abars__row:hover { background: #F6F1E5; }
+.abars__label { display: flex; align-items: center; gap: 7px; min-width: 0; color: var(--ink-2); }
+.abars__track { height: 16px; background: var(--line-2); border-radius: 1px; overflow: hidden; }
+.abars__fill { display: block; height: 100%; min-width: 2px; }
+.abars__n { font: 700 14px var(--f-cond); font-variant-numeric: tabular-nums; text-align: right; min-width: 64px; }
+.abars__n small { font: 400 12px var(--f-sans); color: var(--ink-3); }
+
+/* ---- Filtros en chips (Solicitudes, Monitoreo, Riesgos) ---- */
+.achips { display: flex; flex-wrap: wrap; gap: 8px; }
+.achip {
+  display: inline-flex; align-items: center; gap: 7px; min-height: 40px; padding: 6px 12px; background: var(--surface); border: 1px solid var(--line); border-radius: 2px;
+  font: 600 13px var(--f-sans); color: var(--ink-2); opacity: .75;
+}
+.achip:hover { opacity: 1; border-color: var(--ink-3); }
+.achip.is-on { opacity: 1; background: var(--ink); color: #fff; border-color: var(--ink); }
+.achip--layer.is-on { background: #fff; color: var(--ink); border-color: var(--ink-3); }
+.achip--layer.is-on .achip__n { background: var(--line-2); color: var(--ink-2); }
+.achip--layer { opacity: .55; }
+.achip--layer.is-on { opacity: 1; }
+.achip__n { font: 700 12px var(--f-cond); padding: 1px 6px; background: var(--line-2); color: var(--ink-2); border-radius: 2px; min-width: 22px; text-align: center; }
+.achip.is-on .achip__n { background: rgba(255, 255, 255, .2); color: #fff; }
+
+/* ---- Acciones de una ficha ---- */
+.aact { display: grid; gap: 10px; margin: 14px 0 18px; }
+.aact .btn { justify-content: center; min-height: 44px; font-size: 14.5px; }
+.aact .row-gap { margin: 0; }
+.aact__done { margin: 0; }
+.seg--wrap { display: grid; grid-template-columns: 1fr 1fr; width: 100%; }
+.seg--wrap .seg__btn { min-height: 44px; border-top: 1px solid var(--line); }
+.seg--wrap .seg__btn:nth-child(-n + 2) { border-top: 0; }
+.seg--wrap .seg__btn:nth-child(even) { border-left: 1px solid var(--line); }
+.seg--wrap .seg__btn:nth-child(odd) { border-left: 0; }
+
+/* ---- Solicitudes ---- */
+.asol__ico { display: grid; place-items: center; width: 56px; height: 56px; background: #ECE8DF; border: 1px solid var(--line); color: var(--ink-3); }
+.asol__msg { color: var(--ink-2); font-size: 13px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; overflow-wrap: anywhere; }
+
+/* ---- Monitoreo ---- */
+.amini { display: flex; flex-wrap: wrap; gap: 8px; }
+.amini .btn { padding: 7px 11px; font-size: 13px; }
+.acoord { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin: 6px 0 12px; }
+.acoord__txt { font-size: 15px; padding: 8px 10px; background: #F3EDDD; border: 1px solid var(--line); }
+
+/* ---- Zonas de riesgo ---- */
+.ariesgo__box { position: relative; isolation: isolate; margin-top: 10px; border: 1px solid var(--line); background: #E9E4D8; }
+.ariesgo__map { isolation: isolate; height: clamp(360px, calc(100vh - 330px), 720px); }
+.ariesgo__vacio { position: absolute; z-index: 500; left: 50%; top: 50%; transform: translate(-50%, -50%); background: var(--surface); border: 1px solid var(--ink-2); padding: 12px 16px; max-width: calc(100% - 28px); text-align: center; }
+.ariesgo__box .mapbadge { z-index: 600; }
+.arow { margin: 6px 0; }
+.view--riesgos .achips { margin-top: 10px; }
+
+/* ---- Muestras ---- */
+.asems { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+.asem { display: grid; gap: 2px; text-align: left; min-height: 44px; padding: 12px 16px; background: var(--surface); border: 1px solid var(--line); border-top: 3px solid var(--ink-3); border-radius: var(--radius); color: var(--ink); }
+.asem:hover { background: #F6F1E5; }
+.asem.is-on { outline: 2px solid var(--ink); outline-offset: -1px; background: #F6F1E5; }
+.asem__label { display: flex; align-items: center; gap: 7px; font: 700 12px/1.25 var(--f-cond); letter-spacing: .07em; text-transform: uppercase; color: var(--ink-2); }
+.asem__n { font: 700 32px/1.05 var(--f-cond); font-variant-numeric: tabular-nums; }
+.asem__sub { font-size: 12.5px; color: var(--ink-3); }
+.amuestras__map { isolation: isolate; height: 260px; background: #E9E4D8; border: 1px solid var(--line); }
+
+/* ---- Ajustes comunes de las vistas del panel ---- */
+.view--resumen .grid, .view--solicitudes .card, .view--muestras .card { min-width: 0; }
+
+@media (max-width: 900px) {
+  .akpis, .asems { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 700px) {
+  .akpi { padding: 12px 28px 10px 12px; }
+  .akpi__value { font-size: 30px; }
+  button.akpi::after { right: 9px; }
+  .abars__row { grid-template-columns: minmax(80px, 110px) minmax(0, 1fr) auto; gap: 8px; font-size: 13px; }
+  .abars__n { min-width: 54px; }
+  .amini .btn { flex: 1 1 calc(50% - 4px); justify-content: center; min-height: 44px; }
+  .view--monitoreo .tbl td[data-label="#"] { display: none; }
+  .view--monitoreo .toolbar .input, .view--muestras .toolbar .input { flex: 1 1 100%; min-height: 44px; font-size: 16px; }
+  .view--solicitudes .btn, .view--muestras .btn, .view--monitoreo .btn, .view--riesgos .btn, .view--resumen .btn { min-height: 44px; }
+  .view--riesgos .seg, .view--riesgos .toolbar .input { width: 100%; }
+  .view--riesgos .seg__btn { flex: 1; min-height: 44px; }
+  .ariesgo__map { isolation: isolate; height: clamp(320px, calc(100vh - 380px), 560px); }
+  .acoord .btn { flex: 1 1 100%; justify-content: center; }
+}
+@media (max-width: 420px) {
+  .asems { gap: 8px; }
+  .asem { padding: 10px 12px; }
+  .asem__n { font-size: 28px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .achip, .akpi, .asem { transition: none; }
+}
+
+/* ---- Apilado de tarjetas en una columna ---- */
+.astack { display: grid; gap: 18px; align-content: start; min-width: 0; }
+.acol-full { grid-column: 1 / -1; }
+
+/* ==========================================================================
+   Pulido profesional del panel de autoridades
+   ========================================================================== */
+
+/* Menú lateral: con 17 secciones no cabe en pantallas bajas; la lista se desplaza dentro del menú
+   en lugar de salirse del fondo oscuro. */
+@media (min-width: 861px) {
+  .side { overflow: hidden; }
+  .side .nav { min-height: 0; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin; scrollbar-color: #4A453D transparent; padding: 8px 0; }
+  .side .nav a { padding-top: 9px; padding-bottom: 9px; }
+  .side .brand, .side .side__foot { flex: none; }
+}
+
+/* Botones segmentados y búsquedas del panel: altura cómoda también con ratón. */
+.view--buzon .seg__btn, .view--riesgos .seg__btn, .view--registro .seg__btn { min-height: 38px; padding-left: 14px; padding-right: 14px; }
+@media (min-width: 701px) {
+  .view--monitoreo .toolbar .input[type="search"], .view--muestras .toolbar .input[type="search"], .view--pasivos .toolbar .input[type="search"] { flex: 1 1 280px; max-width: 360px; }
+  .view--pasivos .toolbar select.input { flex: 0 1 230px; }
+}
+.view--riesgos .ariesgo__box + p { margin-top: 10px; }
+
+/* Resumen: el ranking deja que el responsable pase a una segunda línea en vez de cortarse con puntos suspensivos. */
+@media (min-width: 621px) {
+  .view--resumen .rank__row { grid-template-columns: 22px minmax(0, 1fr) 96px auto; align-items: start; }
+  .view--resumen .rank__row .chip { align-self: center; min-width: 124px; justify-content: center; }
+  .view--resumen .rank__n { align-self: center; }
+  .view--resumen .rank__sub { white-space: normal; overflow: visible; text-overflow: clip; }
+  .view--resumen .rank__scores { align-self: center; }
+}
+
+/* Fichas laterales: botones de acción con el mismo ancho en celular. */
+.acoord__txt { overflow-wrap: anywhere; }
+@media (max-width: 700px) {
+  .drawer__body .row-gap > .btn { flex: 1 1 100%; justify-content: center; min-height: 44px; }
+  .drawer__foot .btn { min-height: 44px; }
+  .drawer__body .acoord .btn { min-height: 44px; }
+}
+
+/* ---- Tablas del panel en celular: tarjetas compactas (sin una etiqueta por cada dato) ---- */
+@media (max-width: 700px) {
+  .view--pasivos .tbl tr, .view--monitoreo .tbl tr, .view--muestras .tbl tr, .view--riesgos .tbl tr {
+    display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px 14px; padding: 14px 16px; align-items: start;
+  }
+  .view--riesgos .tbl tr { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .view--pasivos .tbl td, .view--monitoreo .tbl td, .view--muestras .tbl td, .view--riesgos .tbl td { padding: 0; min-width: 0; overflow-wrap: anywhere; }
+  .view--pasivos .tbl td::before, .view--monitoreo .tbl td::before, .view--muestras .tbl td::before, .view--riesgos .tbl td::before { margin-bottom: 2px; font-size: 11px; }
+  .view--pasivos .tbl td[data-label="#"] { display: none; }
+
+  /* Pasivos */
+  .view--pasivos .tbl td[data-label="Pasivo"] { order: 1; grid-column: 1 / -1; font-size: 15px; }
+  .view--pasivos .tbl td[data-label="Clasificación"] { order: 2; grid-column: 1 / -1; }
+  .view--pasivos .tbl td[data-label="Responsable"] { order: 3; grid-column: 1 / -1; }
+  .view--pasivos .tbl td[data-label="Riesgo"] { order: 4; } .view--pasivos .tbl td[data-label="Valor"] { order: 5; }
+  .view--pasivos .tbl td[data-label="Volumen m³"] { order: 6; } .view--pasivos .tbl td[data-label="A un río"] { order: 7; }
+  .view--pasivos .tbl td[data-label="Pasivo"]::before, .view--pasivos .tbl td[data-label="Clasificación"]::before { display: none; }
+  .view--pasivos .tbl .progress--sm { min-width: 0; }
+
+  /* Monitoreo */
+  .view--monitoreo .tbl td[data-label="Pasivo"] { order: 1; grid-column: 1 / -1; font-size: 15px; }
+  .view--monitoreo .tbl td[data-label="Prioridad"] { order: 2; }
+  .view--monitoreo .tbl td[data-label="Resultado"] { order: 3; }
+  .view--monitoreo .tbl td[data-label="Resultado"]:has(> .muted) { display: none; }
+  .view--monitoreo .tbl td[data-label="Muestra"] { order: 4; grid-column: 1 / -1; }
+  .view--monitoreo .tbl td[data-label="Acciones"] { order: 5; grid-column: 1 / -1; }
+  .view--monitoreo .tbl td[data-label="Pasivo"]::before, .view--monitoreo .tbl td[data-label="Prioridad"]::before, .view--monitoreo .tbl td[data-label="Resultado"]::before,
+  .view--monitoreo .tbl td[data-label="Muestra"]::before, .view--monitoreo .tbl td[data-label="Acciones"]::before { display: none; }
+  .view--monitoreo .amini { flex-wrap: nowrap; }
+  .view--monitoreo .amini .btn { flex: 1 1 0; white-space: nowrap; padding-left: 8px; padding-right: 8px; }
+
+  /* Muestras */
+  .view--muestras .tbl td[data-label="Lugar"] { order: 1; grid-column: 1 / -1; font-size: 15px; }
+  .view--muestras .tbl td[data-label="Resultado"] { order: 2; }
+  .view--muestras .tbl td[data-label="Fecha"] { order: 3; }
+  .view--muestras .tbl td[data-label="Tipo"] { order: 4; } .view--muestras .tbl td[data-label="Hg2+ (ppb)"] { order: 5; }
+  .view--muestras .tbl td[data-label="Laboratorio"] { order: 6; } .view--muestras .tbl td[data-label="Tomada por"] { order: 7; }
+  .view--muestras .tbl td[data-label="Lugar"]::before, .view--muestras .tbl td[data-label="Resultado"]::before { display: none; }
+
+  /* Zonas de riesgo (por municipio) */
+  .view--riesgos .tbl td[data-label="Municipio"] { order: 1; grid-column: 1 / -1; font-size: 15px; }
+  .view--riesgos .tbl td[data-label="Riesgo más alto"] { order: 2; grid-column: 1 / -1; }
+  .view--riesgos .tbl td[data-label="Pasivos"] { order: 3; } .view--riesgos .tbl td[data-label="Prioridad alta"] { order: 4; } .view--riesgos .tbl td[data-label="Sin muestra"] { order: 5; }
+  .view--riesgos .tbl td[data-label="Ver"] { order: 6; grid-column: 1 / -1; }
+  .view--riesgos .tbl td[data-label="Municipio"]::before, .view--riesgos .tbl td[data-label="Ver"]::before { display: none; }
+  .view--riesgos .tbl td[data-label="Ver"] .btn { width: 100%; justify-content: center; }
+
+  /* Zonas de riesgo: la leyenda de capas se desplaza en una sola fila y deja ver el mapa enseguida. */
+  .view--riesgos .achips { flex-wrap: nowrap; overflow-x: auto; margin-left: -14px; margin-right: -14px; padding: 2px 14px 6px; scrollbar-width: none; }
+  .view--riesgos .achips::-webkit-scrollbar { display: none; }
+  .view--riesgos .achip { flex: none; }
+  .view--riesgos .toolbar { gap: 8px; }
+
+  /* Pestañas y filtros de las listas: objetivo táctil de 44 px. */
+  .view--buzon .seg__btn, .view--registro .seg__btn { min-height: 44px; }
+  .view--buzon .toolbar > .btn { min-height: 44px; }
+  .achip { min-height: 44px; }
+}
+
+/* Tabletas: Monitoreo sin la columna "#" y con botones en una columna, sin partir su texto. */
+@media (min-width: 701px) and (max-width: 1100px) {
+  .view--monitoreo .tbl th:first-child, .view--monitoreo .tbl td:first-child { display: none; }
+  .view--monitoreo .amini { flex-direction: column; flex-wrap: nowrap; }
+  .view--monitoreo .amini .btn { white-space: nowrap; justify-content: center; }
+  .view--monitoreo .tbl th, .view--monitoreo .tbl td { padding-left: 12px; padding-right: 12px; }
+}

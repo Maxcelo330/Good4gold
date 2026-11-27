@@ -8,8 +8,10 @@
   const G4G = (window.G4G = window.G4G || {});
 
   G4G.config = {
-    nombre: 'Registro y Control Minero',
-    version: '0.5.0',
+    nombre: 'Aurum80',
+    equipo: 'Aurum80',
+    evento: 'Gold4Good Bolivia 2026',
+    version: '0.7.0',
 
     /* Caja aproximada de Bolivia: se usa para detectar coordenadas erróneas. */
     limites: { latMin: -23.0, latMax: -9.5, lngMin: -69.8, lngMax: -57.4 },
@@ -142,6 +144,32 @@
       atendida: { label: 'Atendida' }
     },
     radioCercaniaKm: 5,
+
+    /* Programas a los que una cooperativa o empresa puede inscribirse (ids = PROGRAMAS en backend/Codigo.gs). */
+    programas: {
+      biorremediacion: { label: 'Programa de biorremediación', corto: 'Biorremediación' }
+    },
+    estadosInscripcion: {
+      pendiente:   { label: 'Recibida' },
+      en_revision: { label: 'En revisión' },
+      aceptada:    { label: 'Aceptada' },
+      no_aplica:   { label: 'No corresponde por ahora' }
+    },
+
+    /* Requisito del operador -> como lo ve la cooperativa: Listo (true), En proceso (sin dato), Faltante (false). */
+    estadosRequisito: {
+      listo:    { label: 'Listo',      forma: 'circulo',   color: '#2E7D4F' },
+      proceso:  { label: 'En proceso', forma: 'triangulo', color: '#B97A00' },
+      faltante: { label: 'Faltante',   forma: 'cuadrado',  color: '#B3261E' }
+    },
+
+    /* Muestras de campo (tamizaje colorimétrico). El resultado orienta; NO reemplaza al laboratorio acreditado.
+       Los umbrales de cada matriz viven en js/core/hgsense.js junto con su fuente. */
+    semaforoMuestra: {
+      verde:    { label: 'Sin alerta de campo', forma: 'circulo',   color: '#2E7D4F' },
+      amarillo: { label: 'Confirmar',           forma: 'triangulo', color: '#B97A00' },
+      rojo:     { label: 'Prioridad',           forma: 'cuadrado',  color: '#B3261E' }
+    },
 
     /* Alias de encabezados del Excel/CSV real. Se comparan sin tildes, sin
        espacios y en minúsculas. Agrega aquí los nombres de columna de su base. */

@@ -1,0 +1,214 @@
+/* ==========================================================================
+   Sistema de movimiento y tricolor boliviano (sutil).
+   Reglas: solo transform y opacity; 120-320 ms; curvas --ease-out / --ease-io.
+   Todo lo animado vive aquí y se apaga con prefers-reduced-motion (al final).
+   Las animaciones de entrada solo se activan cuando js/core/motion.js agrega una
+   clase (.m-enter, .is-entering) y terminan en estado visible: si el JS falla,
+   el contenido se ve igual. Sin motion.js no pasa nada (mejora progresiva).
+   ========================================================================== */
+:root {
+  /* Tricolor boliviano: solo guiños (franja fina, barra de carga, divisores). Nunca junto a chips de estado ni en mapas. */
+  --bo-rojo: #D52B1E;
+  --bo-amarillo: #F2C300;
+  --bo-verde: #007934;
+  --bo-tricolor: linear-gradient(90deg, var(--bo-rojo) 0 33.34%, var(--bo-amarillo) 33.34% 66.67%, var(--bo-verde) 66.67% 100%);
+
+  /* Curvas y duraciones */
+  --ease-out: cubic-bezier(.2, .8, .2, 1);
+  --ease-io: cubic-bezier(.4, 0, .2, 1);
+  --ease-spring: cubic-bezier(.3, 1.3, .5, 1);
+  --dur-press: 120ms;
+  --dur-1: 160ms;
+  --dur-2: 240ms;
+  --dur-3: 320ms;
+
+  /* Formas y sombras: una sola escala para celular y escritorio (tarjetas 14, botones y campos 12, chips 10, hojas 20) */
+  --r-card: 14px;
+  --r-btn: 12px;
+  --r-chip: 10px;
+  --r-sheet: 20px;
+  --shadow-soft: 0 1px 2px rgba(0, 0, 0, .06), 0 8px 24px rgba(0, 0, 0, .06);
+}
+
+/* ---- Franja tricolor de 2 px en el borde superior de la barra superior ---- */
+.topbar::before { content: ""; position: absolute; left: 0; right: 0; top: 0; height: 2px; background: var(--bo-tricolor); opacity: .9; pointer-events: none; }
+
+/* ---- Barra de progreso fina (sincronización y cambio de pantalla) ---- */
+.m-progress { position: fixed; z-index: 1500; left: 0; right: 0; top: 0; height: 3px; overflow: hidden; background: rgba(29, 27, 24, .88); opacity: 0; pointer-events: none; transition: opacity var(--dur-2) var(--ease-io); }
+.m-progress.is-on { opacity: 1; }
+.m-progress__bar { position: absolute; top: 0; bottom: 0; left: 0; width: 40%; background: var(--bo-tricolor); transform: translateX(-100%); }
+.m-progress.is-on .m-progress__bar { animation: m-prog 1.15s var(--ease-io) infinite; }
+.m-progress.is-nav .m-progress__bar { animation: m-prog-once 520ms var(--ease-out) 1 forwards; }
+@keyframes m-prog { from { transform: translateX(-100%); } to { transform: translateX(260%); } }
+@keyframes m-prog-once { from { transform: translateX(-100%); } to { transform: translateX(260%); } }
+
+/* ---- Entradas ---- */
+@keyframes m-rise { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
+@keyframes m-rise-t { from { transform: translateY(12px); } to { transform: none; } }
+@keyframes m-fade { from { opacity: 0; } to { opacity: 1; } }
+@keyframes m-view-in { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+
+/* Cascada de los primeros 8 bloques de una vista (motion.js agrega y quita .m-enter). */
+.m-enter > :nth-child(-n+8) { animation: m-rise var(--dur-3) var(--ease-out) backwards; }
+.m-enter--vt > :nth-child(-n+8) { animation-name: m-rise-t; }
+.m-enter > :nth-child(2) { animation-delay: 35ms; }
+.m-enter > :nth-child(3) { animation-delay: 70ms; }
+.m-enter > :nth-child(4) { animation-delay: 105ms; }
+.m-enter > :nth-child(5) { animation-delay: 140ms; }
+.m-enter > :nth-child(6) { animation-delay: 175ms; }
+.m-enter > :nth-child(7) { animation-delay: 210ms; }
+.m-enter > :nth-child(8) { animation-delay: 245ms; }
+
+/* Respaldo sin View Transitions: la sección que entra aparece con fundido y sube 10 px. */
+.view.is-entering { animation: m-view-in var(--dur-2) var(--ease-out) backwards; }
+.view.is-entering--fade { animation-name: m-fade; }
+
+/* View Transitions: la barra superior y la inferior no se desvanecen con el resto. */
+html.m-vt .topbar { view-transition-name: g4g-top; }
+html.m-vt .side { view-transition-name: g4g-nav; }
+::view-transition-old(root) { animation: m-vt-out var(--dur-2) var(--ease-out) both; }
+::view-transition-new(root) { animation: m-vt-in var(--dur-2) var(--ease-out) both; }
+@keyframes m-vt-out { to { opacity: 0; } }
+@keyframes m-vt-in { from { opacity: 0; transform: translateY(10px); } }
+
+/* ---- Micro-interacciones: pulsación y foco ---- */
+.btn, .action-card, .stat-link, .op-card, .option, .filter-chip, .sheet__item, .nav a, .nav__mas,
+.p2-acceso, .map-fab, .banner-link, .seg__btn, .icon-btn, button.akpi, .rank__row, .denlist__row { -webkit-tap-highlight-color: transparent; }
+.btn, .action-card, .stat-link, .op-card, .option, .filter-chip, .sheet__item, .nav a, .nav__mas,
+.p2-acceso, .map-fab, .banner-link, button.akpi {
+  transition: transform var(--dur-press) var(--ease-out), border-color var(--dur-1) var(--ease-io), background-color var(--dur-1) var(--ease-io), box-shadow var(--dur-1) var(--ease-io), color var(--dur-1) var(--ease-io);
+}
+.btn:active, .action-card:active, .stat-link:active, .op-card:active, .option:active, .filter-chip:active, .sheet__item:active,
+.nav a:active, .nav__mas:active, .p2-acceso:active, .map-fab:active, .banner-link:active, button.akpi:active { transform: scale(.98); }
+.btn:disabled:active { transform: none; }
+.side :focus-visible, .hero :focus-visible, .sheet__panel :focus-visible { outline-color: var(--gold); }
+.nav a:focus-visible, .nav__mas:focus-visible { outline-offset: -3px; }
+
+/* ---- Esqueleto de carga (shimmer) ----
+   Uso: <div class="skeleton skeleton--line"></div> (una línea), .skeleton--block (bloque alto),
+   .skeleton--round (círculo). ui.skeleton(n) devuelve n líneas ya armadas.
+   ui.empty('Cargando…') agrega solo .empty--loading, que lleva el mismo brillo. */
+.skeleton, .empty--loading, .akpi--wait { position: relative; overflow: hidden; }
+.skeleton { display: block; background: var(--line-2); border-radius: 6px; color: transparent; min-height: 14px; }
+.skeleton--line { height: 14px; margin: 8px 0; }
+.skeleton--line:nth-child(2n) { width: 82%; }
+.skeleton--line:nth-child(3n) { width: 64%; }
+.skeleton--block { height: 96px; }
+.skeleton--round { width: 44px; height: 44px; border-radius: 50%; }
+.skeleton::after, .empty--loading::after, .akpi--wait::after {
+  content: ""; position: absolute; inset: 0; pointer-events: none; transform: translateX(-100%);
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, .6), transparent); animation: m-shimmer 1.3s var(--ease-io) infinite;
+}
+@keyframes m-shimmer { to { transform: translateX(100%); } }
+.skeletons { display: grid; gap: 2px; padding: 4px 0; }
+
+/* ---- Barra inferior: pastilla dorada deslizante bajo el acceso activo (solo celular) ----
+   Es la propia pastilla del item activo: motion.js fija su posición (--ind-x) y ancho (--ind-w). */
+.nav__ind { display: none; }
+@media (max-width: 860px) {
+  .nav { position: relative; }
+  .nav a, .nav__mas { position: relative; z-index: 1; }
+  .nav__ind { display: block; position: absolute; z-index: 0; top: 4px; left: 0; height: calc(100% - 8px); width: var(--ind-w, 56px); border-radius: var(--r-btn); background: rgba(228, 185, 78, .16); box-shadow: inset 0 0 0 1px rgba(228, 185, 78, .28); opacity: 0; pointer-events: none; transform: translateX(var(--ind-x, 0px)); transition: transform var(--dur-3) var(--ease-out), width var(--dur-3) var(--ease-out), opacity var(--dur-2) var(--ease-io); }
+  .nav--ind .nav__ind { opacity: 1; }
+  .nav--ind .nav__ind.is-jump { transition: none; }
+  .nav.nav--ind a.is-active, .nav.nav--ind .nav__mas.is-active { background: transparent; border-top-color: transparent; }
+  .nav--ind a.is-active svg, .nav--ind .nav__mas.is-active svg { color: #E4B94E; }
+  .nav a.is-active svg, .nav__mas.is-active svg { animation: m-pop var(--dur-3) var(--ease-spring); }
+}
+@keyframes m-pop { 0% { transform: scale(.84); } 55% { transform: scale(1.14); } 100% { transform: scale(1); } }
+
+/* ---- Hoja "Más", drawer y avisos ---- */
+.sheet__scrim { animation: m-fade var(--dur-2) var(--ease-io) both; }
+.sheet__panel { animation: m-sheet-in var(--dur-3) var(--ease-spring) both; will-change: transform; }
+.sheet.is-closing { pointer-events: none; }
+.sheet.is-closing .sheet__scrim { animation: m-fade-out var(--dur-1) var(--ease-io) both; }
+.sheet.is-closing .sheet__panel { animation: m-sheet-out var(--dur-2) var(--ease-io) both; }
+@keyframes m-sheet-in { from { transform: translateY(100%); } to { transform: none; } }
+@keyframes m-sheet-out { to { transform: translateY(100%); } }
+@keyframes m-fade-out { to { opacity: 0; } }
+
+/* ---- Contadores ---- */
+.kpi__value, .stat-link__n, .banner-link__n, .akpi__value { font-variant-numeric: tabular-nums; }
+
+/* ---- Tricolor: divisores de guiño ---- */
+.hero--p2 .hero__title::after { content: ""; display: block; width: 44px; height: 3px; margin-top: 12px; border-radius: 2px; background: var(--bo-tricolor); opacity: .9; }
+.p2-pie { position: relative; }
+.p2-pie::before { content: ""; position: absolute; top: -2px; left: 50%; width: 56px; height: 3px; margin-left: -28px; border-radius: 2px; background: var(--bo-tricolor); opacity: .85; }
+
+/* ==========================================================================
+   Formas y sombras (escritorio y celular): esquinas suaves y consistentes.
+   Los colores de estado no se tocan.
+   ========================================================================== */
+:root { --radius: 12px; }
+.card, .kpis, .akpi, .stat-link, .op-card, .how li, .banner-link, .p2-acceso, .p2-paso__card, .p2-programa__bloque,
+.p2-inscribir, .p2-resumen, .p2-siguiente, .p2-reqs, .p2-ins li, .p2-info details, .p2-vacio, .empty-cta, .login__card, .login__side,
+.action-card, .p2-solicitud, .p2-login__card, .p2-perfil { border-radius: var(--r-card); }
+.hero { border-radius: calc(var(--r-card) + 4px); }
+.callout, .note, .p2-aviso, .geo-near, .geo-water, .here__water, .check--block { border-radius: 10px; }
+.card--flush, .kpis, .checklist, .issues { overflow: hidden; }
+.checklist, .issues { border-radius: 10px; }
+.card, .stat-link, .op-card, .how li, .p2-acceso, .p2-paso__card, .p2-programa__bloque, .p2-resumen, .p2-ins li, .akpi, .kpis, .p2-login__card { box-shadow: var(--shadow-soft); }
+.p2-acceso--primary { box-shadow: 0 1px 2px rgba(0, 0, 0, .08), 0 8px 24px rgba(176, 125, 20, .22); }
+.btn, .icon-btn, .input, .search-big__input, .seg, .dropzone, .option, .suggest, .account, .filter-chip, .layer-chip { border-radius: var(--r-btn); }
+.seg { overflow: hidden; }
+.chip, .tag, .p2-estado, .p2-ref, .conn, .origin, .map-sync__btn { border-radius: var(--r-chip); }
+.steps__n, .how__n { border-radius: 10px; }
+.p2-acceso__icon, .action-card__icon, .p2-perfil__icon { border-radius: 12px; }
+.minimap, .photo, .photo-preview img, .denlist__thumb { border-radius: 10px; }
+.mappanel { border-radius: var(--r-card); }
+.map-sync, .water-status { border-radius: var(--r-card); overflow: hidden; }
+.mappanel__toggle { border-radius: var(--r-card) var(--r-card) 0 0; }
+.mappanel.is-collapsed .mappanel__toggle { border-radius: var(--r-card); border-bottom-color: transparent; }
+.toast, .tip { border-radius: var(--r-btn); }
+.drawer { border-radius: var(--r-card) 0 0 var(--r-card); }
+.leaflet-tooltip, .here-popup .leaflet-popup-content-wrapper { border-radius: 10px; }
+
+/* ==========================================================================
+   Pulido móvil (solo hasta 860 px): formas más suaves, sombras ligeras, más aire.
+   Los colores de estado no se tocan.
+   ========================================================================== */
+@media (max-width: 860px) {
+  .btn, .input { min-height: 44px; }
+  /* Objetivos táctiles de 44 px */
+  .icon-btn, .account, .filter-chip, .layer-chip, .seg__btn, .suggest__item, .here__item { min-height: 44px; }
+  .icon-btn { min-width: 44px; }
+  .account { min-width: 44px; justify-content: center; }
+  .map-sync__btn { min-height: 36px; min-width: 36px; justify-content: center; }
+  .filter-chip, .layer-chip { align-items: center; }
+  .main { padding: 18px 16px 40px; }
+  .main.is-full { padding: 0; }
+  .view:not(.view--mapa) > * + * { margin-top: 22px; }
+  .block { margin-top: 30px; }
+  .grid { gap: 20px; }
+
+  /* Hoja "Más" */
+  .sheet__panel { border-radius: var(--r-sheet) var(--r-sheet) 0 0; }
+  .sheet__item { border-radius: var(--r-card); }
+  .sheet__item.is-active { border-color: var(--gold); }
+
+  /* Barra inferior: borde superior suave, fondo con desenfoque y sombra */
+  .side { background: rgba(31, 29, 26, .94); -webkit-backdrop-filter: blur(14px) saturate(1.3); backdrop-filter: blur(14px) saturate(1.3); border-top: 1px solid rgba(255, 255, 255, .08); border-radius: var(--r-sheet) var(--r-sheet) 0 0; box-shadow: 0 -8px 28px rgba(0, 0, 0, .16); }
+  .nav a, .nav__mas { margin: 4px 2px; border-radius: var(--r-btn); }
+  .nav a:hover { background: transparent; }
+  .nav a.is-active, .nav__mas.is-active { background: rgba(255, 255, 255, .07); color: #fff; }
+
+  /* Barra superior: franja tricolor más baja y borde suave */
+  .topbar { border-bottom-color: rgba(0, 0, 0, .07); }
+}
+
+@media print { .topbar::before, .m-progress { display: none; } }
+
+/* ==========================================================================
+   Movimiento reducido: se apaga todo lo de este archivo.
+   ========================================================================== */
+@media (prefers-reduced-motion: reduce) {
+  .m-enter > *, .view.is-entering, .sheet__scrim, .sheet__panel, .sheet.is-closing .sheet__scrim, .sheet.is-closing .sheet__panel,
+  .nav a.is-active svg, .nav__mas.is-active svg, .toast, .skeleton::after, .empty--loading::after, .akpi--wait::after { animation: none !important; }
+  .m-progress { display: none !important; }
+  .btn, .action-card, .stat-link, .op-card, .option, .filter-chip, .sheet__item, .nav a, .nav__mas, .p2-acceso, .map-fab, .banner-link, button.akpi,
+  .nav__ind, .drawer, .scrim { transition: none !important; }
+  .btn:active, .action-card:active, .stat-link:active, .op-card:active, .option:active, .filter-chip:active, .sheet__item:active,
+  .nav a:active, .nav__mas:active, .p2-acceso:active, .map-fab:active, .banner-link:active, button.akpi:active { transform: none; }
+  .skeleton::after, .empty--loading::after, .akpi--wait::after { display: none; }
+  ::view-transition-group(*), ::view-transition-old(*), ::view-transition-new(*) { animation: none !important; }
+}
